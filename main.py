@@ -1,3 +1,3 @@
-from build_data import DataCharger
+from data_charger import DataCharger
 
 test_bd = DataCharger("cranfield")

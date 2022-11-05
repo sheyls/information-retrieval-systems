@@ -14,11 +14,14 @@ class DataCharger:
         self.data_name = dataset_name
         self.data_original_path = dataset_path
         self.data_path = f"{PATH}/data-processed/{dataset_name}"
-        self._charge_data()
+        #self._charge_data()
 
-    def _charge_data(self):
-        metadata: List[Dict[str, Any]] = []
+    def charge_data(
+        self,
+        metadata: List[Dict[str, Any]] = [],
         docs: List[str] = []
+    ):
+
         mkdir(self.data_path)
         self._charge_metadata(metadata)
         self._charge_docs(docs)
@@ -36,4 +39,5 @@ class DataCharger:
             json.dump(docs, file)
 
 #TESTING
-test_bd = DataCharger("cranfield")
+#test_bd = DataCharger("cranfield")
+#test_bd.charge_data([{"no": "no"}], ["kalalala"])
