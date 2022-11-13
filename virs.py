@@ -1,13 +1,15 @@
 from collections import Counter
 import math
 from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
-from nltk.stem import PorterStemmer
-import json
 import numpy as np
+import json
 from numpy.lib.function_base import average
 from scipy.sparse import lil_matrix, csr_matrix
+<<<<<<< HEAD
 from irs import InformationRetrievalSystem
+=======
+import utils
+>>>>>>> origin/dev-erh
 
 class VectModelInformationRetrievalSystem(InformationRetrievalSystem):
     def __init__(self, alpha, dataset):
@@ -54,42 +56,7 @@ class VectModelInformationRetrievalSystem(InformationRetrievalSystem):
         for query in self.querys.values():
             self.search(query['text'], query_id = query['id'])
     
-    @staticmethod
-    def __convert_lower_case(data):
-        return np.char.lower(data)
-
-    @staticmethod
-    def __remove_stop_words(data):
-        stop_words = stopwords.words('english')
-        words = word_tokenize(str(data))
-        new_text = ""
-        for w in words:
-            if w not in stop_words and len(w) > 1:
-                new_text = new_text + " " + w
-        return new_text
-
-    @staticmethod
-    def __remove_punctuation(data):
-        symbols = "!\"#$%&()*+-./:;<=>?@[\]^_`{|}~\n"
-        for i in range(len(symbols)):
-            data = np.char.replace(data, symbols[i], ' ')
-            data = np.char.replace(data, "  ", " ")
-        data = np.char.replace(data, ',', '')
-        return data
-
-    @staticmethod
-    def __remove_apostrophe(data):
-        return np.char.replace(data, "'", "")
-
-    @staticmethod
-    def __stemming(data):
-        stemmer= PorterStemmer()
-        
-        tokens = word_tokenize(str(data))
-        new_text = ""
-        for w in tokens:
-            new_text = new_text + " " + stemmer.stem(w)
-        return new_text
+    
     
     def __doc_freq(self, word):
         c = 0
@@ -100,15 +67,15 @@ class VectModelInformationRetrievalSystem(InformationRetrievalSystem):
         return c
     
     def __preprocess(self, data):
-        data = VectModelInformationRetrievalSystem.__convert_lower_case(data)
-        data = VectModelInformationRetrievalSystem.__remove_punctuation(data) #remove comma seperately
-        data = VectModelInformationRetrievalSystem.__remove_apostrophe(data)
-        data = VectModelInformationRetrievalSystem.__remove_stop_words(data)
-        data = VectModelInformationRetrievalSystem.__stemming(data)
-        data = VectModelInformationRetrievalSystem.__remove_punctuation(data)
-        data = VectModelInformationRetrievalSystem.__stemming(data) #needed again as we need to stem the words
-        data = VectModelInformationRetrievalSystem.__remove_punctuation(data) #needed again as num2word is giving few hypens and commas fourty-one
-        data = VectModelInformationRetrievalSystem.__remove_stop_words(data) #needed again as num2word is giving stop words 101 - one hundred and one
+        data = utils.convert_lower_case(data)
+        data = utils.remove_punctuation(data) #remove comma seperately
+        data = utils.remove_apostrophe(data)
+        data = utils.remove_stop_words(data)
+        data = utils.stemming(data)
+        data = utils.remove_punctuation(data)
+        data = utils.stemming(data) #needed again as we need to stem the words
+        data = utils.remove_punctuation(data) #needed again as num2word is giving few hypens and commas fourty-one
+        data = utils.remove_stop_words(data) #needed again as num2word is giving stop words 101 - one hundred and one
         return data
     
     def __df(self):
