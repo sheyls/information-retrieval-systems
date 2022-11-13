@@ -44,7 +44,7 @@ class VectModelInformationRetrievalSystem:
                 'id' : doc['id'],
                 'title' : word_tokenize(str(self.__preprocess(doc['title']))) if 'title' in doc.keys() else [],
                 'text' : word_tokenize(str(self.__preprocess(doc['abstract']))) if 'abstract' in doc.keys() else []
-                }
+            }
 
         self.N = len(self.data)
         self.__df()
@@ -225,8 +225,6 @@ class VectModelInformationRetrievalSystem:
             print("\n---------- Ejecutando Búsqueda -----------\n")
         
         tokens = word_tokenize(str(preprocessed_query))
-        # tokens = self.query_expansion(tokens)
-
         d_cosines = []
         
         query_vector = self.__gen_query_vector(tokens, float(alpha))
