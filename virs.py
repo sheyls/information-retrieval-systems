@@ -7,8 +7,9 @@ import json
 import numpy as np
 from numpy.lib.function_base import average
 from scipy.sparse import lil_matrix, csr_matrix
+from irs import InformationRetrievalSystem
 
-class VectModelInformationRetrievalSystem:
+class VectModelInformationRetrievalSystem(InformationRetrievalSystem):
     def __init__(self, alpha, dataset):
 
         self.alpha = alpha  
