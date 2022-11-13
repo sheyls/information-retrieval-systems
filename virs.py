@@ -2,14 +2,10 @@ from collections import Counter
 import math
 from nltk.tokenize import word_tokenize
 import numpy as np
-import json
 from numpy.lib.function_base import average
 from scipy.sparse import lil_matrix, csr_matrix
-<<<<<<< HEAD
 from irs import InformationRetrievalSystem
-=======
 import utils
->>>>>>> origin/dev-erh
 
 class VectModelInformationRetrievalSystem(InformationRetrievalSystem):
     def __init__(self, alpha, dataset):
@@ -17,27 +13,7 @@ class VectModelInformationRetrievalSystem(InformationRetrievalSystem):
         self.alpha = alpha  
         self.searched = {}
         
-        if dataset == '1':  
-            with open('datasets/Cranfield/CRAN.ALL.json') as data:    
-                self.dataset = json.load(data)
-            
-            with open('datasets/Cranfield/CRAN.QRY.json') as data:    
-                self.querys = json.load(data)
-
-            with open('datasets/Cranfield/CRAN.REL.json') as data:    
-                self.rel = json.load(data)
-        elif dataset == '2':
-
-            with open('datasets/Med/MED.ALL.json') as data:    
-                self.dataset = json.load(data)  
-
-            with open('datasets/Med/MED.QRY.json') as data:    
-                self.querys = json.load(data)      
-            
-            with open('datasets/Med/MED.REL.json') as data:    
-                self.rel = json.load(data)    
-        else:
-            raise Exception
+        self.dataset, self.querys, self.rel = utils.read_json(dataset)
 
         self.data = {}
         self.relevant_docs = int(average([len(queries.values()) for queries in self.rel.values()]))
@@ -45,8 +21,8 @@ class VectModelInformationRetrievalSystem(InformationRetrievalSystem):
         for doc in self.dataset.values():
             self.data[doc['id']] = {
                 'id' : doc['id'],
-                'title' : word_tokenize(str(self.__preprocess(doc['title']))) if 'title' in doc.keys() else [],
-                'text' : word_tokenize(str(self.__preprocess(doc['abstract']))) if 'abstract' in doc.keys() else []
+                'title' : word_tokenize(str(self.preprocess(doc['title']))) if 'title' in doc.keys() else [],
+                'text' : word_tokenize(str(self.preprocess(doc['abstract']))) if 'abstract' in doc.keys() else []
             }
 
         self.N = len(self.data)
@@ -57,7 +33,6 @@ class VectModelInformationRetrievalSystem(InformationRetrievalSystem):
             self.search(query['text'], query_id = query['id'])
     
     
-    
     def __doc_freq(self, word):
         c = 0
         try:
@@ -66,17 +41,7 @@ class VectModelInformationRetrievalSystem(InformationRetrievalSystem):
             pass
         return c
     
-    def __preprocess(self, data):
-        data = utils.convert_lower_case(data)
-        data = utils.remove_punctuation(data) #remove comma seperately
-        data = utils.remove_apostrophe(data)
-        data = utils.remove_stop_words(data)
-        data = utils.stemming(data)
-        data = utils.remove_punctuation(data)
-        data = utils.stemming(data) #needed again as we need to stem the words
-        data = utils.remove_punctuation(data) #needed again as num2word is giving few hypens and commas fourty-one
-        data = utils.remove_stop_words(data) #needed again as num2word is giving stop words 101 - one hundred and one
-        return data
+    
     
     def __df(self):
         self.word_frequency = {}
@@ -187,7 +152,7 @@ class VectModelInformationRetrievalSystem(InformationRetrievalSystem):
             self.__print_search(self.searched[query_id][1][:self.relevant_docs], preview)
             return
         
-        preprocessed_query = self.__preprocess(query)
+        preprocessed_query = self.preprocess(query)
             
         if (not query_id):
             print("\n---------- Ejecutando Búsqueda -----------\n")
