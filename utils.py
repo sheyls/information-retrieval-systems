@@ -42,7 +42,7 @@ def read_json(dataset):
                 sol_dataset = json.load(data)
             
             with open('datasets/Cranfield/CRAN.QRY.json') as data:    
-                sol_querys = json.load(data)
+                sol_queries = json.load(data)
 
             with open('datasets/Cranfield/CRAN.REL.json') as data:    
                 sol_rel = json.load(data)
@@ -52,10 +52,10 @@ def read_json(dataset):
             sol_dataset = json.load(data)  
 
         with open('datasets/Med/MED.QRY.json') as data:    
-            sol_querys = json.load(data)      
+            sol_queries = json.load(data)      
         
         with open('datasets/Med/MED.REL.json') as data:    
             sol_rel = json.load(data)    
     else:
         raise Exception
-    return sol_dataset, sol_querys, sol_rel
+    return sol_dataset, sol_queries, sol_rel
