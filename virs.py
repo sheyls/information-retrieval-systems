@@ -300,4 +300,19 @@ class VectModelInformationRetrievalSystem(InformationRetrievalSystem):
         plot.draw()
         plot.title('P/R')
         plot.show()
-
+        
+    def evaluate_system(self):
+        print("\n---------- Ejecutando Evaluación General del Sistema -----------\n")
+        sum_recall = 0
+        sum_precision = 0
+        sum_f1 = 0
+        sum_errors = 0
+        for query in self.searched.keys():
+            recall, precision, f1 = self.evaluate_query(query, False)
+            sum_recall += recall
+            sum_precision += precision
+            sum_f1 += f1
+            if not f1:
+                sum_errors += 1
+        
+        print(f'Promedio de Precisión: {sum_precision/len(self.queries)} \nPromedio de Recobrado: {sum_recall/len(self.queries)} \nPromedio de Medida F1: {sum_f1/len(self.queries)} \nNingún Documento Relevante Recuperado: {sum_errors} Veces ({sum_errors*100/len(self.queries)}%)\n')
