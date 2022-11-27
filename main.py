@@ -1,4 +1,5 @@
 from virs import VectModelInformationRetrievalSystem
+from boolean import BooleanModel
 
 def main_exec(irsystem):
     while True:
@@ -14,5 +15,5 @@ def main_exec(irsystem):
 if __name__ == '__main__':
     dataset = input('Elige un Dataset: \n1 - Cranfield \n2 - MED \nEnter - Para terminar\n-> ')
     if dataset == '1' or dataset == '2':
-        irsystem = VectModelInformationRetrievalSystem(0.3, dataset)
+        irsystem = BooleanModel(0.3,dataset)
         main_exec(irsystem)
