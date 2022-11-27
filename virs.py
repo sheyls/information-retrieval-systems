@@ -6,6 +6,7 @@ from numpy.lib.function_base import average
 from scipy.sparse import lil_matrix, csr_matrix
 from irs import InformationRetrievalSystem
 import utils
+import matplotlib.pyplot as plot
 
 class VectModelInformationRetrievalSystem(InformationRetrievalSystem):
     def __init__(self, alpha, dataset):
@@ -13,7 +14,7 @@ class VectModelInformationRetrievalSystem(InformationRetrievalSystem):
         self.alpha = alpha  
         self.searched = {}
         
-        self.dataset, self.querys, self.rel = utils.read_json(dataset)
+        self.dataset, self.queries, self.rel = utils.read_json(dataset)
 
         self.data = {}
         self.relevant_docs = int(average([len(queries.values()) for queries in self.rel.values()]))
@@ -29,7 +30,7 @@ class VectModelInformationRetrievalSystem(InformationRetrievalSystem):
         self.__df()
         self.__tf_idf()
 
-        for query in self.querys.values():
+        for query in self.queries.values():
             self.search(query['text'], query_id = query['id'])
     
     
@@ -171,3 +172,132 @@ class VectModelInformationRetrievalSystem(InformationRetrievalSystem):
             self.searched[query_id] = (query_vector, out)
         else:
             self.__print_search(out[:self.relevant_docs], preview)
+            
+    def executeRocchio(self, query_id, relevants, alpha, beta, gamma):
+        if query_id in self.searched.keys():
+            query = self.searched[query_id]
+
+            query_vector = query[0]
+
+            rel_docs = 0
+            sum_rel_docs = lil_matrix((1, self.total_vocab_size))
+            nonrel_docs = 0
+            sum_nonrel_docs = lil_matrix((1, self.total_vocab_size))
+
+            for doc in query[1][:self.relevant_docs]:
+                if str(doc[0]) in relevants:
+                    rel_docs += 1
+                    sum_rel_docs += self.tf_idf[doc[0]]
+                else:
+                    nonrel_docs += 1
+                    sum_nonrel_docs += self.tf_idf[doc[0]]
+                
+            term1 = [alpha*word for word in query_vector.toarray()]
+
+            sum_rel_docs = sum_rel_docs.toarray()
+            sum_nonrel_docs = sum_nonrel_docs.toarray()
+
+            pos=0   
+            while pos < len(term1[0]):
+                term1[0][pos] += (float(beta)/rel_docs) * sum_rel_docs[0][pos] - (float(gamma)/nonrel_docs) * sum_nonrel_docs[0][pos]
+                pos += 1  
+            
+            d_cosines = []
+            for d in self.tf_idf:
+                d_cosines.append(VectModelInformationRetrievalSystem.__cosine_sim(d, csr_matrix(term1[0])))
+
+            out = [(id, d_cosines[id].max()) for id in np.array(d_cosines).argsort()[1:][::-1] if d_cosines[id] and d_cosines[id].max() != 0.0]
+            
+            self.searched[query_id] = (csr_matrix(term1), out)
+            
+    def evaluate_query(self, query_id, show_output):
+        if str(query_id) not in self.searched.keys():
+            print("Consulta no encontrada")
+            return
+
+        if (show_output):
+            print("\nConsulta: " + self.queries[str(query_id)]['text']) 
+
+        return self.__evaluate(self.searched[query_id][1],self.rel[str(query_id)], show_output)
+    
+    def __evaluate(self, ranking, relevants_docs_query, show_output):
+        
+        [true_positives, false_positives] = self.__relevant_doc_retrieved(ranking, relevants_docs_query)
+
+        recall = VectModelInformationRetrievalSystem.__get_recall(true_positives,len(relevants_docs_query))
+        precision = VectModelInformationRetrievalSystem.__get_precision(true_positives,false_positives)
+        if precision and recall:
+            f1 = 2 / (1/precision + 1/recall)
+        else:
+            f1 = 0
+
+        if show_output:
+            print(f"\nPrecisión: {precision} \nRecobrado: {recall} \nMedida F1: {f1}\n")
+
+            true_positives = 0
+            false_positives = 0
+            recall = []
+            precision = []
+            for doc in ranking:
+                if str(doc[0]) in relevants_docs_query.keys():
+                    true_positives += 1
+                else:
+                    false_positives += 1
+
+                recall.append(self.__get_recall(true_positives,len(relevants_docs_query)))
+                precision.append(self.__get_precision(true_positives,false_positives))
+
+
+            recalls_levels = np.array([ 0. ,  0.1,  0.2,  0.3,  0.4,  0.5,  0.6,  0.7,  0.8,  0.9,  1. ]) 
+
+            interpolated_precisions = self.__interpolate_precisions(recall, precision, recalls_levels)
+            self.__plot_results(recalls_levels, interpolated_precisions)
+            return
+        else:
+            return recall, precision, f1
+    
+    def __relevant_doc_retrieved(self, ranking, relevants_docs_query):
+        true_positives = 0
+        false_positives = 0
+        for doc in ranking[:self.relevant_docs]:
+           if str(doc[0]) in relevants_docs_query.keys():
+                true_positives += 1
+           else:
+                false_positives += 1
+        return true_positives, false_positives
+        
+    @staticmethod
+    def __get_recall(true_positives, real_true_positives):
+        recall=float(true_positives)/float(real_true_positives)
+        return recall
+    
+    @staticmethod
+    def __get_precision(true_positives, false_positives):
+        relevant_items_retrieved=true_positives+false_positives
+        precision=float(true_positives)/float(relevant_items_retrieved)
+        return precision
+    
+    @staticmethod
+    def __interpolate_precisions(recalls,precisions, recalls_levels):
+        precisions_interpolated = np.zeros((len(recalls), len(recalls_levels)))
+        i = 0
+        while i < len(precisions):
+            # use the max precision obtained for the topic for any actual recall level greater than or equal the recall_levels
+            recalls_inter = np.where((recalls[i] > recalls_levels) == True)[0]
+            for recall_id in recalls_inter:
+                if precisions[i] > precisions_interpolated[i, recall_id]:
+                    precisions_interpolated[i, recall_id] = precisions[i]
+            i += 1
+
+        mean_interpolated_precisions = np.mean(precisions_interpolated, axis=0)
+        return mean_interpolated_precisions
+
+    @staticmethod
+    def __plot_results(recall, precision):
+        plot.plot(recall, precision)
+        plot.xlabel('Recobrado')
+        plot.ylabel('Precisión')
+        plot.draw()
+        plot.title('P/R')
+        plot.show()
+
