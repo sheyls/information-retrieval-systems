@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-from build_data import DataCharger
-
-test_bd = DataCharger("cranfield")
-=======
 from virs import VectModelInformationRetrievalSystem
 
 def main_exec(irsystem):
@@ -54,4 +49,3 @@ if __name__ == '__main__':
     if dataset == '1' or dataset == '2':
         irsystem = VectModelInformationRetrievalSystem(0.3, dataset)
         main_exec(irsystem)
->>>>>>> 41a2b86a5d8a8367f3981e959d0e8ca8ee8de696
