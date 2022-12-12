@@ -11,9 +11,15 @@ def remove_stop_words(data):
     stop_words = stopwords.words('english')
     words = word_tokenize(str(data))
     new_text = ""
+    first_word = True
+        
     for w in words:
         if w not in stop_words and len(w) > 1:
-            new_text = new_text + " " + w
+            if(first_word):
+                new_text= w
+                first_word=False
+            else:
+                new_text = new_text + " " + w
     return new_text
 
 def remove_punctuation(data):
@@ -22,7 +28,11 @@ def remove_punctuation(data):
         data = np.char.replace(data, symbols[i], ' ')
         data = np.char.replace(data, "  ", " ")
     data = np.char.replace(data, ',', '')
-    return data
+<<<<<<< Updated upstream
+    data= np.char.replace(data, "'", "")
+=======
+>>>>>>> Stashed changes
+    return str(data)
 
 def remove_apostrophe(data):
     return np.char.replace(data, "'", "")
