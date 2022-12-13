@@ -28,10 +28,7 @@ def remove_punctuation(data):
         data = np.char.replace(data, symbols[i], ' ')
         data = np.char.replace(data, "  ", " ")
     data = np.char.replace(data, ',', '')
-<<<<<<< Updated upstream
     data= np.char.replace(data, "'", "")
-=======
->>>>>>> Stashed changes
     return str(data)
 
 def remove_apostrophe(data):
