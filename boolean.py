@@ -141,15 +141,6 @@ class BooleanModel(InformationRetrievalSystem):
         print("Searching Time: ", ("{0:.14f}".format(total_time)))
         self.__print_search(docs, 500)
 
-<<<<<<< Updated upstream
-=======
-
-    def __print_search(self, out, preview):
-        print(out)
-        for doc in out:
-            print(f"{doc[0]} - { self.dataset[str(doc[0])]['title'] if self.dataset[str(doc[0])]['title'] != '' else 'Not Title'}\nText: {self.dataset[str(doc[0])]['abstract'][:preview]}")
-            print()
->>>>>>> Stashed changes
     
     def search(self, query, alpha=0.5):
         """Evaluates the query
