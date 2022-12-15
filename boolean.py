@@ -39,15 +39,12 @@ class BooleanModel(InformationRetrievalSystem):
                 #word_tokenize(str(self.preprocess(doc['abstract']))) if 'abstract' in doc.keys() else []
             }
         
-        self.corpus = self.GetCorpusRep()
-
         #Stopwords
         self.stopword = set(stopwords.words("english"))
         
         #Stemming
         self.reverse_stem = defaultdict(list)
         self.ps = PorterStemmer()
-
 
         # Set of all unique terms in the corpus. We use a set to retrieve unique terms.
         self.dictionary = set()
@@ -62,13 +59,6 @@ class BooleanModel(InformationRetrievalSystem):
         self.corpus_preprocess()
 
 
-    def GetCorpusRep(self):
-        ''' Representation of the corpus as a list of strings. 
-        Each string represents a document and has the structure:
-        document_title + document_text'''
-        corpus= [ ' '.join(doc['title']) + ' '.join(doc['text']) for doc in self.data.values()]
-        return corpus
-    
     def corpus_preprocess(self):
         start_time = time.time()
         """Preprocess the corpus"""
@@ -124,14 +114,11 @@ class BooleanModel(InformationRetrievalSystem):
         :query: valid boolean expression to search for
         :returns: list of matching document names
         """
-
-        
         # Tokenize query
         q = word_tokenize(query)
         
         # Convert infix query to postfix query
         q = convert(q)
-        
         
         # Evaluate query against already processed documents
         docs = self.search(q)
@@ -141,15 +128,12 @@ class BooleanModel(InformationRetrievalSystem):
         print("Searching Time: ", ("{0:.14f}".format(total_time)))
         self.__print_search(docs, 500)
 
-<<<<<<< Updated upstream
-=======
 
     def __print_search(self, out, preview):
         print(out)
         for doc in out:
             print(f"{doc[0]} - { self.dataset[str(doc[0])]['title'] if self.dataset[str(doc[0])]['title'] != '' else 'Not Title'}\nText: {self.dataset[str(doc[0])]['abstract'][:preview]}")
             print()
->>>>>>> Stashed changes
     
     def search(self, query, alpha=0.5):
         """Evaluates the query
@@ -158,7 +142,8 @@ class BooleanModel(InformationRetrievalSystem):
         
         word = []
         # query: list of query tokens in postfix form
-        for token in query:
+        for i in range(len(query)):
+            token= query[i]
             searched_token = token
             # Token is an operator,
             # Pop two elements from stack and apply it.
@@ -177,9 +162,17 @@ class BooleanModel(InformationRetrievalSystem):
                 doc_list = self.solve(left_word, right_word, token)
 
                 word.append(doc_list)
+            
 
             # Token is an operand, push it to the word
             else:        
+                if token=='~':
+                    try:
+                        token= token + query[i+1]
+                        i= i+1
+                    except: 
+                        raise ValueError("Query is not correctly formed!")
+
                 # Lowercasing and stemming query term
                 token = self.preprocess(token)
                 #token = self.ps.stem(token.lower())
@@ -255,7 +248,7 @@ class BooleanModel(InformationRetrievalSystem):
         :returns: bit list of word with bits set when it appears in the particular documents
         """
         # Size of bit list
-        totalDoc = len(self.corpus)
+        totalDoc = len((self.data).keys())
         
         negation = False
         if token[0] == "~":  
@@ -326,8 +319,3 @@ class BooleanModel(InformationRetrievalSystem):
                     else:
                         binary_list[i] = True
             return binary_list
-
-""" corpus= ["Hola hola lindo hola mundo","feo"]
-query ="hola lindo"
-bm= BooleanModel()
-print(bm.Transform_query(corpus,query)) """
