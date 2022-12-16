@@ -40,9 +40,9 @@ def reset_search():
 
 def show_result(result: dict):
     doc_id = result["id"]
-    expander_header = "Document {}".format(doc_id)
+    expander_header = f"{doc_id} -- ".format(doc_id)
     if result["title"] != '':
-        expander_header = result["title"].capitalize()
+        expander_header += result["title"].capitalize()
         
     with st.expander(f"{expander_header}"):
         if result["title"] != '' :
@@ -98,13 +98,21 @@ if MODEL == "Vectorial":
     with coll1:
         query = st.text_input("Enter a query", placeholder="Write your query here")
         QUERY = query
-        if  RETRO:
-            pass
-        elif M_INC != None:
-            result = M_INC.search(query, ALPHA)
-            st.write(f"Found {len(result)} results")
-            for r in result:
-                show_result(r)
+        if  M_INC != None:
+            if RETRO:
+                result = M_INC.search(query, ALPHA)
+                st.write(f"Found {len(result)} results")
+                for r in result:
+                    show_result(r)
+                relevant = st.text_input("Write the document's ID you found relevants")
+                M_INC.executeRocchio(QUERY, relevant, 1, 0.9, 0.5)
+                M_INC.search(QUERY, preview=250)
+
+            else:
+                result = M_INC.search(query, ALPHA)
+                st.write(f"Found {len(result)} results")
+                for r in result:
+                    show_result(r)
 
         else:
             print("No model instance")
@@ -124,22 +132,16 @@ elif model == "Boolean":
         st.session_state.query = query
 
 
-         
-#with cols[1]:
-   # limit = st.slider(
-   #     "Top", 1, len(st.session_state.docs), 10s, help="Max number of results to show"
-   # )
-    #if st.session_state.top != limit:
-    #    reset_search()
-    #    st.session_state.top = limit
-
 
 def make_visual_evaluation():
 
-    ps, rs, f1s, fou = evaluate(DATASET, M_INC)
-    metrics = {"presition": [str(i) for i in ps], "Recall": [str(i) for i in rs], "F1": [str(i) for i in f1s], "Fallout":[str(i) for i in fou]}
-    new = pd.DataFrame.from_dict(metrics)
-    st.line_chart(new)
+    ps, rs, f1, fou = evaluate(DATASET, M_INC)
+    p = mean(ps)
+    r = mean(rs)
+    f = mean(f1)
+    o = mean(fou)
+    data = pd.DataFrame([[p, "Presition"],[r, 'Recall'], [f, 'F1'], [o, 'Fallout']], columns=['Mean Value', 'Metrics'])
+    st.bar_chart(data, x="Metrics")
 
 if st.button("Show evaluation measures statistics"):
     make_visual_evaluation()
