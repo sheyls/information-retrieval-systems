@@ -223,10 +223,6 @@ class BooleanModel(InformationRetrievalSystem):
             print("Wrong query!")
             return list()
 
-        if query_id:
-            self.searched[query_id] = (query_vector, out)
-        else:
-            self.__print_search(out[:self.relevant_docs])
         # Find out id of documents corresponding to set bits in the list
         docs = [i+1 for i in np.where(word[-1])[0]]
         
@@ -443,8 +439,8 @@ class BooleanModel(InformationRetrievalSystem):
 
 corpus= ["Hola hola lindo hola mundo","feo"]
 queryy ="avion"
-bm= BooleanModel(0.5, "2")
-bm.query(queryy)
 ask = [f'{query[0]} - {bm.querys[query[0]]["text"]}\n' for query in bm.searched.items()]
+bm= BooleanModel(0.5, "2")
+bm.query(ask)
 query = input("".join(ask) + 'Elegir ID -> ')
 bm.evaluate_query(query, True)

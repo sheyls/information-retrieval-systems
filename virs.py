@@ -1,5 +1,6 @@
 from collections import Counter
 import math
+from unittest import result
 from nltk.tokenize import word_tokenize
 import numpy as np
 from numpy.lib.function_base import average
@@ -133,9 +134,11 @@ class VectModelInformationRetrievalSystem(InformationRetrievalSystem):
         return csr_matrix(Q)
     
     def __print_search(self, out, preview):
+        resul = []
         for doc in out:
+            resul.append(self.dataset[str(doc[0])])
             print(f"{doc[0]} - { self.dataset[str(doc[0])]['title'] if self.dataset[str(doc[0])]['title'] != '' else 'Not Title'}\nText: {self.dataset[str(doc[0])]['abstract'][:preview]}")
-            print()
+        return resul
             
     @staticmethod
     def __cosine_sim(a, b):
@@ -171,7 +174,7 @@ class VectModelInformationRetrievalSystem(InformationRetrievalSystem):
         if query_id:
             self.searched[query_id] = (query_vector, out)
         else:
-            self.__print_search(out[:self.relevant_docs], preview)
+            return self.__print_search(out[:self.relevant_docs], preview)
             
     def executeRocchio(self, query_id, relevants, alpha, beta, gamma):
         if query_id in self.searched.keys():
