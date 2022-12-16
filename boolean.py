@@ -155,10 +155,25 @@ class BooleanModel(InformationRetrievalSystem):
         returns names of matching document 
         """
 
+        #TODO mejorar con regex
         word = []
-        
+        rquery = []
+        if "&" in query or "|" in query or "~" in query:
+            rquery = query.split()
+        else:
+            splited = query.split()
+            for w in range(len(splited)):
+                if w == len(splited) - 1:
+                    rquery.append(splited[w])
+                    break
+                rquery.append(splited[w])
+                rquery.append("&")
+
+        print(rquery)
+
         # query: list of query tokens in postfix form
-        for token in query:
+        for token in rquery:
+            print(token)
             searched_token = token
             # Token is an operator,
             # Pop two elements from stack and apply it.
@@ -330,6 +345,6 @@ class BooleanModel(InformationRetrievalSystem):
     
 
 corpus= ["Hola hola lindo hola mundo","feo"]
-queryy ="avion"
+queryy ="similarity laws must be obeyed when constructing"
 bm= BooleanModel(0.5, "1")
 bm.search(queryy)

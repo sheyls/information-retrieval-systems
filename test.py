@@ -1,17 +1,18 @@
-import streamlit as st
-import pandas as pd
 
-def make_visual_evaluation():
+def make_visual_evaluation(query):
 
-    chart_data = pd.DataFrame(
-    [
-        [1, "metric1"],
-        [2, "metric2"],
-        [3, "metric3"],
-    ],
-    columns=["mean value", "metrics"])
+    rcuery = ""
+    if "&" in query or "|" in query or "~" in query:
+            rcuery = query
+    else:
+        splited = query.split()
+        for w in range(len(splited)):
+            if w == len(splited) - 1:
+                rcuery = rcuery + splited[w]
+                break
+            rcuery = rcuery + splited[w] + " " + "&" + " "
+    print(rcuery)
 
-    st.bar_chart(chart_data, x="metric name")
 
-if st.button("Show evaluation measures statistics"):
-    make_visual_evaluation()
+q = "Hola  & adios sennor feo"
+make_visual_evaluation(q)
