@@ -1,54 +1,66 @@
+from statistics import mean
 from urllib.error import URLError
 import streamlit as st
 import pandas as pd
 import os
 from pathlib import Path
-from matplotlib import pyplot as  plt
+from matplotlib import docstring, pyplot as  plt
 import numpy as np
-from virs import VectModelInformationRetrievalSystem
+from virs import VectorialModel
+from eval import evaluate
+
+
+DOCS = None
+RETRO = False
+QUERY = ""
+DATASET = None
+ALPHA = 0.5
+RETRO = False
+MODEL = None
+M_INC = None
 
 def reset_search():
     st.session_state.results = []
+    
 
 
 def reset():
-    st.session_state.docs = None
-    st.session_state.model = None
-    st.session_state.dataset = None
-    st.session_state.smoothing = 0.5
-    st.session_state.top = 10
-    st.session_state.retro = False
-    st.session_state.irsystem = None
+    DOCS = None
+    QUERY = ""
+    DATASET = None
+    ALPHA = 0.5
+    RETRO = False
+    MODEL = None
+    M_INC = None
     reset_search() 
 
-state_vars = [
-    "docs",
-    "results",
-    "model",
-    "dataset",
-    "from_i",
-    "to_i",
-    "query",
-    "score",
-    "top",
-    "retro"
-    "smoothing"
-    "irsystem"
-]
-for var in state_vars:
-    if var not in st.session_state:
-        st.session_state[var] = None
 
 def reset_search():
     st.session_state.results = []
 
+def show_result(result: dict):
+    doc_id = result["id"]
+    expander_header = "Document {}".format(doc_id)
+    if result["title"] != '':
+        expander_header = result["title"].capitalize()
+        
+    with st.expander(f"{expander_header}"):
+        if result["title"] != '' :
+            t = result["title"]
+            a = result["author"]
+            st.caption(f"**{t.upper()}:** {a}")
+    
+        st.markdown(result["abstract"].capitalize())
+
 st.title("Information Retrieval Multi-Models")
 reset()
+
 dic = {"Cranfield": "1", "Med": "2"}
 
-
 path = os.getcwd()
+
 datasets = os.listdir(path+"/datasets")
+
 if not datasets:
     st.write("No databases found")
 datasets.insert(0, "-")
@@ -57,63 +69,65 @@ col1, col2 = st.columns([2, 2])
 
 with col1:
     dataset = st.selectbox("Select a database", datasets)
-    if st.session_state.docs is None or st.session_state.dataset != dataset:
-        reset()
-        st.session_state.dataset = dataset
+    DATASET = dataset
 
 
 with col2:
     model = st.selectbox(
-        "Choose a retrieval model", ["-", "Vectorial", "Boolean", "PMA"])
-    if not model:
+        "Choose a retrieval model", ["-", "Vectorial", "Boolean"])
+    MODEL = model
+    if not MODEL:
         st.error("Please select one model.")
-    if model == "Vectorial":
+    if MODEL == "Vectorial":
         if dataset != "-":
-            irsystem = VectModelInformationRetrievalSystem(0.3, dic[dataset])
-            st.session_state.irsystem = irsystem
-    elif model == "Boolean":
+            irsystem = VectorialModel(ALPHA, dic[dataset])
+            M_INC = irsystem
+    elif MODEL == "Boolean":
         st.button("kk")
+    else: print("NO model")
 
 
 
 coll1, coll2 = st.columns([6, 2])
 
-if model == "Vectorial":
+if MODEL == "Vectorial":
     with coll2:
-        st.session_state.retro = st.checkbox("Rocchio retroalimentation")
-        print(st.session_state.retro)
+        RETRO = st.checkbox("Rocchio retroalimentation")
+        print(RETRO)
 
     with coll1:
         query = st.text_input("Enter a query", placeholder="Write your query here")
-        st.session_state.query = query
-        if  st.session_state.retro:
+        QUERY = query
+        if  RETRO:
             pass
+        elif M_INC != None:
+            result = M_INC.search(query, ALPHA)
+            st.write(f"Found {len(result)} results")
+            for r in result:
+                show_result(r)
+
         else:
-            if st.session_state.irsystem != None:
-                st.session_state.irsystem.search(query, st.session_state.smoothing)
-elif model == "Boolean":
-    with coll1:
-        query = st.text_input("Enter a query", placeholder="Write your query here")
-        st.session_state.query = query
-
-
-cols = st.columns(2)
-
-with cols[0]:
-    if model == "Vectorial":
-        smoothing = st.slider(
+            print("No model instance")
+             
+    alpha = st.slider(
             "Smoothing constant",
             0.0,
             1.0,
             0.5,
             help="Smoothing constant",
         )
-        st.session_state.smoothing = smoothing
-    
-     
+    ALPHA = alpha
+
+elif model == "Boolean":
+    with coll1:
+        query = st.text_input("Enter a query", placeholder="Write your query here")
+        st.session_state.query = query
+
+
+         
 #with cols[1]:
    # limit = st.slider(
-   #     "Top", 1, len(st.session_state.docs), 10, help="Max number of results to show"
+   #     "Top", 1, len(st.session_state.docs), 10s, help="Max number of results to show"
    # )
     #if st.session_state.top != limit:
     #    reset_search()
@@ -121,13 +135,11 @@ with cols[0]:
 
 
 def make_visual_evaluation():
-    ps, rs, fs, f1s, fls = [], [], [], [], []
 
-    chart_data = pd.DataFrame(
-        np.random.randn(20, 4),
-        columns=['Precision', 'Recall','F metric', 'F1 metric'])
-
-    st.line_chart(chart_data)
+    ps, rs, f1s, fou = evaluate(DATASET, M_INC)
+    metrics = {"presition": [str(i) for i in ps], "Recall": [str(i) for i in rs], "F1": [str(i) for i in f1s], "Fallout":[str(i) for i in fou]}
+    new = pd.DataFrame.from_dict(metrics)
+    st.line_chart(new)
 
 if st.button("Show evaluation measures statistics"):
     make_visual_evaluation()

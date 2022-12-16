@@ -1,4 +1,4 @@
-from virs import VectModelInformationRetrievalSystem
+from virs import VectorialModel
 
 def main_exec(irsystem):
     while True:
@@ -9,7 +9,7 @@ def main_exec(irsystem):
             alpha = input("Escribe la constante de suavizado: ")
             irsystem.search(query, alpha)
         elif mode == '2':
-            if not isinstance(irsystem, VectModelInformationRetrievalSystem):
+            if not isinstance(irsystem, VectorialModel):
                 print("\nEL algoritmo de Rocchio está implementado para el modelo vectorial.")
             else:
                 print('\nAplicar Retroalimentación de Rocchio a:')
@@ -47,5 +47,5 @@ def main_exec(irsystem):
 if __name__ == '__main__':
     dataset = input('Elige un Dataset: \n1 - Cranfield \n2 - MED \nEnter - Para terminar\n-> ')
     if dataset == '1' or dataset == '2':
-        irsystem = VectModelInformationRetrievalSystem(0.3, dataset)
+        irsystem = VectorialModel(0.3, dataset)
         main_exec(irsystem)

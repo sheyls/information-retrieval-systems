@@ -18,8 +18,12 @@ def evaluate(corpus, model):
     recall_list = []
     f1_list = []
     fallout_list = []
+    doc = {}
+    queries = {}
+    query_doc_relevance = {}
+    total_docs = 0
     
-    if corpus == "Crandfield":
+    if corpus == "Cranfield":
         doc, queries, query_doc_relevance = utils.read_json("1")
         total_docs = len(doc)
         print(len(doc))
@@ -125,14 +129,14 @@ def get_queries(corpus ):
     """
     Returns a list of test queries available for the given corpus
     """
-    if corpus == "Crandfield":
+    if corpus == "Cranfield":
             queries_path = Path.cwd()/'datasets/Cranfield/CRAN.QRY.json'
             return queries_path
     else:
             raise Exception('Sorry but we can\'t evaluate this corpus')
 
 def get_query_doc_relevance(corpus):
-    if corpus == "Crandfield":
+    if corpus == "Cranfield":
             queries_path = Path.cwd()/'datasets/Cranfield/CRAN.REL.json'
             return queries_path
     else:
@@ -160,10 +164,3 @@ def get_cranfield_queries(queries_path):
                 #qry = query(query_id, text)
                # result.append(qry)
             return result
-
-vec = VectModelInformationRetrievalSystem(0.3, "1")
-a, b, c, d = evaluate("Crandfield", vec)
-print(mean(a))
-print(mean(b))
-print(mean(c))
-print(mean(d))

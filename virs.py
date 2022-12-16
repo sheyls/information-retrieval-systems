@@ -9,7 +9,7 @@ from irs import InformationRetrievalSystem
 import utils
 import matplotlib.pyplot as plot
 
-class VectModelInformationRetrievalSystem(InformationRetrievalSystem):
+class VectorialModel(InformationRetrievalSystem):
     def __init__(self, alpha, dataset):
 
         self.alpha = alpha  
@@ -142,7 +142,7 @@ class VectModelInformationRetrievalSystem(InformationRetrievalSystem):
             
     @staticmethod
     def __cosine_sim(a, b):
-        return 0 if not a.max() or not b.max() else a.dot(b.transpose())/(VectModelInformationRetrievalSystem.__sparse_row_norm(a)*VectModelInformationRetrievalSystem.__sparse_row_norm(b))
+        return 0 if not a.max() or not b.max() else a.dot(b.transpose())/(VectorialModel.__sparse_row_norm(a)*VectorialModel.__sparse_row_norm(b))
     
     @staticmethod
     def __sparse_row_norm(A):
@@ -167,7 +167,7 @@ class VectModelInformationRetrievalSystem(InformationRetrievalSystem):
         query_vector = self.__gen_query_vector(tokens, float(alpha))
         
         for d in self.tf_idf:
-            d_cosines.append(VectModelInformationRetrievalSystem.__cosine_sim(d, query_vector))
+            d_cosines.append(VectorialModel.__cosine_sim(d, query_vector))
 
         out = [(id, d_cosines[id].max()) for id in np.array(d_cosines, dtype = object).argsort()[-k:][::-1] if d_cosines[id] and d_cosines[id].max() > 0.0]
 
@@ -207,115 +207,8 @@ class VectModelInformationRetrievalSystem(InformationRetrievalSystem):
             
             d_cosines = []
             for d in self.tf_idf:
-                d_cosines.append(VectModelInformationRetrievalSystem.__cosine_sim(d, csr_matrix(term1[0])))
+                d_cosines.append(VectorialModel.__cosine_sim(d, csr_matrix(term1[0])))
 
             out = [(id, d_cosines[id].max()) for id in np.array(d_cosines).argsort()[1:][::-1] if d_cosines[id] and d_cosines[id].max() != 0.0]
             
             self.searched[query_id] = (csr_matrix(term1), out)
-            
-    def evaluate_query(self, query_id, show_output):
-        if str(query_id) not in self.searched.keys():
-            print("Consulta no encontrada")
-            return
-
-        if (show_output):
-            print("\nConsulta: " + self.queries[str(query_id)]['text']) 
-
-        return self.__evaluate(self.searched[query_id][1],self.rel[str(query_id)], show_output)
-    
-    def __evaluate(self, ranking, relevants_docs_query, show_output):
-        
-        [true_positives, false_positives] = self.__relevant_doc_retrieved(ranking, relevants_docs_query)
-
-        recall = VectModelInformationRetrievalSystem.__get_recall(true_positives,len(relevants_docs_query))
-        precision = VectModelInformationRetrievalSystem.__get_precision(true_positives,false_positives)
-        if precision and recall:
-            f1 = 2 / (1/precision + 1/recall)
-        else:
-            f1 = 0
-
-        if show_output:
-            print(f"\nPrecisión: {precision} \nRecobrado: {recall} \nMedida F1: {f1}\n")
-
-            true_positives = 0
-            false_positives = 0
-            recall = []
-            precision = []
-            for doc in ranking:
-                if str(doc[0]) in relevants_docs_query.keys():
-                    true_positives += 1
-                else:
-                    false_positives += 1
-
-                recall.append(self.__get_recall(true_positives,len(relevants_docs_query)))
-                precision.append(self.__get_precision(true_positives,false_positives))
-
-
-            recalls_levels = np.array([ 0. ,  0.1,  0.2,  0.3,  0.4,  0.5,  0.6,  0.7,  0.8,  0.9,  1. ]) 
-
-            interpolated_precisions = self.__interpolate_precisions(recall, precision, recalls_levels)
-            self.__plot_results(recalls_levels, interpolated_precisions)
-            return
-        else:
-            return recall, precision, f1
-    
-    def __relevant_doc_retrieved(self, ranking, relevants_docs_query):
-        true_positives = 0
-        false_positives = 0
-        for doc in ranking[:self.relevant_docs]:
-           if str(doc[0]) in relevants_docs_query.keys():
-                true_positives += 1
-           else:
-                false_positives += 1
-        return true_positives, false_positives
-        
-    @staticmethod
-    def __get_recall(true_positives, real_true_positives):
-        recall=float(true_positives)/float(real_true_positives)
-        return recall
-    
-    @staticmethod
-    def __get_precision(true_positives, false_positives):
-        relevant_items_retrieved=true_positives+false_positives
-        precision=float(true_positives)/float(relevant_items_retrieved)
-        return precision
-    
-    @staticmethod
-    def __interpolate_precisions(recalls,precisions, recalls_levels):
-        precisions_interpolated = np.zeros((len(recalls), len(recalls_levels)))
-        i = 0
-        while i < len(precisions):
-            # use the max precision obtained for the topic for any actual recall level greater than or equal the recall_levels
-            recalls_inter = np.where((recalls[i] > recalls_levels) == True)[0]
-            for recall_id in recalls_inter:
-                if precisions[i] > precisions_interpolated[i, recall_id]:
-                    precisions_interpolated[i, recall_id] = precisions[i]
-            i += 1
-
-        mean_interpolated_precisions = np.mean(precisions_interpolated, axis=0)
-        return mean_interpolated_precisions
-
-    @staticmethod
-    def __plot_results(recall, precision):
-        plot.plot(recall, precision)
-        plot.xlabel('Recobrado')
-        plot.ylabel('Precisión')
-        plot.draw()
-        plot.title('P/R')
-        plot.show()
-        
-    def evaluate_system(self):
-        print("\n---------- Ejecutando Evaluación General del Sistema -----------\n")
-        sum_recall = 0
-        sum_precision = 0
-        sum_f1 = 0
-        sum_errors = 0
-        for query in self.searched.keys():
-            recall, precision, f1 = self.evaluate_query(query, False)
-            sum_recall += recall
-            sum_precision += precision
-            sum_f1 += f1
-            if not f1:
-                sum_errors += 1
-        
-        print(f'Promedio de Precisión: {sum_precision/len(self.queries)} \nPromedio de Recobrado: {sum_recall/len(self.queries)} \nPromedio de Medida F1: {sum_f1/len(self.queries)} \nNingún Documento Relevante Recuperado: {sum_errors} Veces ({sum_errors*100/len(self.queries)}%)\n')
