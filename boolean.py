@@ -119,26 +119,40 @@ class BooleanModel(InformationRetrievalSystem):
         return data
 
 
-    def query(self, query):
+    def search(self, query):
         start_time = time.time()
         """Query the indexed documents using a boolean model
         :query: valid boolean expression to search for
         :returns: list of matching document names
         """
+        
         query =self.preprocess_bquery(query)
+
+        rquery = ""
+        if "&" in query or "|" in query or "~" in query:
+            rquery = query
+        else:
+            splited = query.split()
+            for w in range(len(splited)):
+                if w == len(splited) - 1:
+                    rquery = rquery + splited[w]
+                    break
+                rquery = rquery + splited[w] + " " + "&" + " "
+
         # Tokenize query
-        q = word_tokenize(query)
+        q = word_tokenize(rquery)
         
         # Convert infix query to postfix query
         q = convert(q)
         
         # Evaluate query against already processed documents
-        docs = self.search(q)
+        docs = self.query(q)
         
         end_time = time.time()
         total_time = end_time - start_time
         print("Searching Time: ", ("{0:.14f}".format(total_time)))
         self.__print_search(docs, 500)
+        return docs
 
 
     def __print_search(self, out, preview):
@@ -147,7 +161,7 @@ class BooleanModel(InformationRetrievalSystem):
             print(f"{doc[0]} - { self.dataset[str(doc[0])]['title'] if self.dataset[str(doc[0])]['title'] != '' else 'Not Title'}\nText: {self.dataset[str(doc[0])]['abstract'][:preview]}")
             print()
     
-    def search(self, query, alpha=0.5):
+    def query(self, query, alpha=0.5):
         """Evaluates the query
         returns names of matching document 
         """
@@ -156,6 +170,7 @@ class BooleanModel(InformationRetrievalSystem):
         # query: list of query tokens in postfix form
         for i in range(len(query)):
             token= query[i]
+            print(token)
             searched_token = token
             # Token is an operator,
             # Pop two elements from stack and apply it.
@@ -331,3 +346,8 @@ class BooleanModel(InformationRetrievalSystem):
                     else:
                         binary_list[i] = True
             return binary_list
+
+queryy ="transition studies and skin friction measurements on an insulated"
+bm= BooleanModel(0.5, "1")
+d = bm.search(queryy)
+[print(i) for i in d]

@@ -17,3 +17,5 @@ class InformationRetrievalSystem(ABC):
         data = utils.remove_punctuation(data) #needed again as num2word is giving few hypens and commas fourty-one
         data = utils.remove_stop_words(data) #needed again as num2word is giving stop words 101 - one hundred and one
         return data
+    def evaluate_system(self):
+        pass

@@ -1,19 +1,21 @@
 from collections import Counter
 import math
+from unittest import result
 from nltk.tokenize import word_tokenize
 import numpy as np
 from numpy.lib.function_base import average
 from scipy.sparse import lil_matrix, csr_matrix
 from irs import InformationRetrievalSystem
 import utils
+import matplotlib.pyplot as plot
 
-class VectModelInformationRetrievalSystem(InformationRetrievalSystem):
+class VectorialModel(InformationRetrievalSystem):
     def __init__(self, alpha, dataset):
 
         self.alpha = alpha  
         self.searched = {}
         
-        self.dataset, self.querys, self.rel = utils.read_json(dataset)
+        self.dataset, self.queries, self.rel = utils.read_json(dataset)
 
         self.data = {}
         self.relevant_docs = int(average([len(queries.values()) for queries in self.rel.values()]))
@@ -29,7 +31,7 @@ class VectModelInformationRetrievalSystem(InformationRetrievalSystem):
         self.__df()
         self.__tf_idf()
 
-        for query in self.querys.values():
+        for query in self.queries.values():
             self.search(query['text'], query_id = query['id'])
     
     
@@ -132,13 +134,15 @@ class VectModelInformationRetrievalSystem(InformationRetrievalSystem):
         return csr_matrix(Q)
     
     def __print_search(self, out, preview):
+        resul = []
         for doc in out:
+            resul.append(self.dataset[str(doc[0])])
             print(f"{doc[0]} - { self.dataset[str(doc[0])]['title'] if self.dataset[str(doc[0])]['title'] != '' else 'Not Title'}\nText: {self.dataset[str(doc[0])]['abstract'][:preview]}")
-            print()
+        return resul
             
     @staticmethod
     def __cosine_sim(a, b):
-        return 0 if not a.max() or not b.max() else a.dot(b.transpose())/(VectModelInformationRetrievalSystem.__sparse_row_norm(a)*VectModelInformationRetrievalSystem.__sparse_row_norm(b))
+        return 0 if not a.max() or not b.max() else a.dot(b.transpose())/(VectorialModel.__sparse_row_norm(a)*VectorialModel.__sparse_row_norm(b))
     
     @staticmethod
     def __sparse_row_norm(A):
@@ -163,11 +167,48 @@ class VectModelInformationRetrievalSystem(InformationRetrievalSystem):
         query_vector = self.__gen_query_vector(tokens, float(alpha))
         
         for d in self.tf_idf:
-            d_cosines.append(VectModelInformationRetrievalSystem.__cosine_sim(d, query_vector))
+            d_cosines.append(VectorialModel.__cosine_sim(d, query_vector))
 
         out = [(id, d_cosines[id].max()) for id in np.array(d_cosines, dtype = object).argsort()[-k:][::-1] if d_cosines[id] and d_cosines[id].max() > 0.0]
 
         if query_id:
             self.searched[query_id] = (query_vector, out)
         else:
-            self.__print_search(out[:self.relevant_docs], preview)
+            return self.__print_search(out[:self.relevant_docs], preview)
+            
+    def executeRocchio(self, query_id, relevants, alpha, beta, gamma):
+        if query_id in self.searched.keys():
+            query = self.searched[query_id]
+
+            query_vector = query[0]
+
+            rel_docs = 0
+            sum_rel_docs = lil_matrix((1, self.total_vocab_size))
+            nonrel_docs = 0
+            sum_nonrel_docs = lil_matrix((1, self.total_vocab_size))
+
+            for doc in query[1][:self.relevant_docs]:
+                if str(doc[0]) in relevants:
+                    rel_docs += 1
+                    sum_rel_docs += self.tf_idf[doc[0]]
+                else:
+                    nonrel_docs += 1
+                    sum_nonrel_docs += self.tf_idf[doc[0]]
+                
+            term1 = [alpha*word for word in query_vector.toarray()]
+
+            sum_rel_docs = sum_rel_docs.toarray()
+            sum_nonrel_docs = sum_nonrel_docs.toarray()
+
+            pos=0   
+            while pos < len(term1[0]):
+                term1[0][pos] += (float(beta)/rel_docs) * sum_rel_docs[0][pos] - (float(gamma)/nonrel_docs) * sum_nonrel_docs[0][pos]
+                pos += 1  
+            
+            d_cosines = []
+            for d in self.tf_idf:
+                d_cosines.append(VectorialModel.__cosine_sim(d, csr_matrix(term1[0])))
+
+            out = [(id, d_cosines[id].max()) for id in np.array(d_cosines).argsort()[1:][::-1] if d_cosines[id] and d_cosines[id].max() != 0.0]
+            
+            self.searched[query_id] = (csr_matrix(term1), out)

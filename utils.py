@@ -7,6 +7,33 @@ import numpy as np
 def convert_lower_case(data):
     return np.char.lower(data)
 
+def remove_stop_words_bquery(data):
+    stop_words = stopwords.words('english')
+    words = word_tokenize(str(data))
+    new_text = ""
+    first_word = True
+        
+    for i in range(len(words)):
+        w= words[i]
+        
+        if(w=='or'):
+            w='|'
+            words[i]= w
+        elif(w=='and'):
+            w='&'
+            words[i]= w
+        elif(w=='no' or w=='not'):
+            w='~'
+            words[i]= w
+
+        if w not in stop_words and len(w) >= 1:
+            if(first_word):
+                new_text= w
+                first_word=False
+            else:
+                new_text = new_text + " " + w
+    return new_text
+    
 def remove_stop_words(data):
     stop_words = stopwords.words('english')
     words = word_tokenize(str(data))
@@ -37,33 +64,6 @@ def remove_punctuation_bquery(data):
         data = np.char.replace(data, "  ", " ")
     data = np.char.replace(data, ',', '')
     return str(data)
-
-def remove_stop_words_bquery(data):
-    stop_words = stopwords.words('english')
-    words = word_tokenize(str(data))
-    new_text = ""
-    first_word = True
-        
-    for i in range(len(words)):
-        w= words[i]
-        
-        if(w=='or'):
-            w='|'
-            words[i]= w
-        elif(w=='and'):
-            w='&'
-            words[i]= w
-        elif(w=='no' or w=='not'):
-            w='~'
-            words[i]= w
-
-        if w not in stop_words and len(w) >= 1:
-            if(first_word):
-                new_text= w
-                first_word=False
-            else:
-                new_text = new_text + " " + w
-    return new_text
 
 def remove_apostrophe(data):
     return np.char.replace(data, "'", "")
