@@ -152,7 +152,6 @@ class BooleanModel(InformationRetrievalSystem):
         total_time = end_time - start_time
         print("Searching Time: ", ("{0:.14f}".format(total_time)))
         self.__print_search(docs, 500)
-        [print(i) for i in docs]
         return docs
 
 
