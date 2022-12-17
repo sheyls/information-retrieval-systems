@@ -106,6 +106,17 @@ class BooleanModel(InformationRetrievalSystem):
         passed as a parameter.Set ensures we get unique elements. 
         We then typecast a set to a list to return a list of unique words """ 
         return list(set(words))
+    
+    def preprocess_bquery(self, data):
+        data = utils.convert_lower_case(data)
+        data = utils.remove_punctuation_bquery(data) #remove comma seperately
+        data = utils.remove_apostrophe(data)
+        data = utils.remove_stop_words_bquery(data)
+        data = utils.stemming(data)
+        data = utils.stemming(data) #needed again as we need to stem the words
+        data = utils.remove_punctuation_bquery(data) #needed again as num2word is giving few hypens and commas fourty-one
+        data = utils.remove_stop_words_bquery(data) #needed again as num2word is giving stop words 101 - one hundred and one
+        return data
 
 
     def query(self, query):
@@ -114,6 +125,7 @@ class BooleanModel(InformationRetrievalSystem):
         :query: valid boolean expression to search for
         :returns: list of matching document names
         """
+        query =self.preprocess_bquery(query)
         # Tokenize query
         q = word_tokenize(query)
         
@@ -174,7 +186,7 @@ class BooleanModel(InformationRetrievalSystem):
                         raise ValueError("Query is not correctly formed!")
 
                 # Lowercasing and stemming query term
-                token = self.preprocess(token)
+                #token = self.preprocess(token)
                 #token = self.ps.stem(token.lower())
 
                 """ if token[0] == "~":
