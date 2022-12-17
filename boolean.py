@@ -129,15 +129,18 @@ class BooleanModel(InformationRetrievalSystem):
         query =self.preprocess_bquery(query)
 
         rquery = ""
-        if "&" in query or "|" in query or "~" in query:
-            rquery = query
-        else:
-            splited = query.split()
-            for w in range(len(splited)):
-                if w == len(splited) - 1:
-                    rquery = rquery + splited[w]
-                    break
+
+        splited = query.split()
+        for w in range(len(splited)):
+            if w == len(splited) - 1:
+                rquery = rquery + splited[w]
+                break
+
+            if(splited[w+1] in "&|~" or splited[w] in "&|~"):
+                rquery = rquery + splited[w] + " "
+            else:
                 rquery = rquery + splited[w] + " " + "&" + " "
+
 
         # Tokenize query
         q = word_tokenize(rquery)
@@ -151,15 +154,17 @@ class BooleanModel(InformationRetrievalSystem):
         end_time = time.time()
         total_time = end_time - start_time
         print("Searching Time: ", ("{0:.14f}".format(total_time)))
-        self.__print_search(docs, 500)
+        result = self.__print_search(docs, 500)
         return docs
 
 
     def __print_search(self, out, preview):
-        print(out)
+        resul = []
         for doc in out:
+            resul.append(self.dataset[str(doc[0])])
+
             print(f"{doc[0]} - { self.dataset[str(doc[0])]['title'] if self.dataset[str(doc[0])]['title'] != '' else 'Not Title'}\nText: {self.dataset[str(doc[0])]['abstract'][:preview]}")
-            print()
+        return resul
     
     def query(self, query, alpha=0.5):
         """Evaluates the query
@@ -347,7 +352,7 @@ class BooleanModel(InformationRetrievalSystem):
                         binary_list[i] = True
             return binary_list
 
-queryy ="transition studies and skin friction measurements on an insulated"
+queryy ="what problems of heat conduction in composite slabs have been solved so far ."
 bm= BooleanModel(0.5, "1")
 d = bm.search(queryy)
 [print(i) for i in d]
