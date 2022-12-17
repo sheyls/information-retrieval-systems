@@ -106,27 +106,56 @@ class BooleanModel(InformationRetrievalSystem):
         passed as a parameter.Set ensures we get unique elements. 
         We then typecast a set to a list to return a list of unique words """ 
         return list(set(words))
+    
+    def preprocess_bquery(self, data):
+        data = utils.convert_lower_case(data)
+        data = utils.remove_punctuation_bquery(data) #remove comma seperately
+        data = utils.remove_apostrophe(data)
+        data = utils.remove_stop_words_bquery(data)
+        data = utils.stemming(data)
+        data = utils.stemming(data) #needed again as we need to stem the words
+        data = utils.remove_punctuation_bquery(data) #needed again as num2word is giving few hypens and commas fourty-one
+        data = utils.remove_stop_words_bquery(data) #needed again as num2word is giving stop words 101 - one hundred and one
+        return data
 
 
-    def query(self, query):
+    def search(self, query):
         start_time = time.time()
         """Query the indexed documents using a boolean model
         :query: valid boolean expression to search for
         :returns: list of matching document names
         """
+<<<<<<< HEAD
+=======
+        
+        query =self.preprocess_bquery(query)
+
+        rquery = ""
+        if "&" in query or "|" in query or "~" in query:
+            rquery = query
+        else:
+            splited = query.split()
+            for w in range(len(splited)):
+                if w == len(splited) - 1:
+                    rquery = rquery + splited[w]
+                    break
+                rquery = rquery + splited[w] + " " + "&" + " "
+
+>>>>>>> origin/main
         # Tokenize query
-        q = word_tokenize(query)
+        q = word_tokenize(rquery)
         
         # Convert infix query to postfix query
         q = convert(q)
         
         # Evaluate query against already processed documents
-        docs = self.search(q)
+        docs = self.query(q)
         
         end_time = time.time()
         total_time = end_time - start_time
         print("Searching Time: ", ("{0:.14f}".format(total_time)))
         self.__print_search(docs, 500)
+        return docs
 
 
     def __print_search(self, out, preview):
@@ -135,7 +164,7 @@ class BooleanModel(InformationRetrievalSystem):
             print(f"{doc[0]} - { self.dataset[str(doc[0])]['title'] if self.dataset[str(doc[0])]['title'] != '' else 'Not Title'}\nText: {self.dataset[str(doc[0])]['abstract'][:preview]}")
             print()
     
-    def search(self, query, alpha=0.5):
+    def query(self, query, alpha=0.5):
         """Evaluates the query
         returns names of matching document 
         """
@@ -144,6 +173,10 @@ class BooleanModel(InformationRetrievalSystem):
         # query: list of query tokens in postfix form
         for i in range(len(query)):
             token= query[i]
+<<<<<<< HEAD
+=======
+            print(token)
+>>>>>>> origin/main
             searched_token = token
             # Token is an operator,
             # Pop two elements from stack and apply it.
@@ -174,7 +207,7 @@ class BooleanModel(InformationRetrievalSystem):
                         raise ValueError("Query is not correctly formed!")
 
                 # Lowercasing and stemming query term
-                token = self.preprocess(token)
+                #token = self.preprocess(token)
                 #token = self.ps.stem(token.lower())
 
                 """ if token[0] == "~":
@@ -319,3 +352,11 @@ class BooleanModel(InformationRetrievalSystem):
                     else:
                         binary_list[i] = True
             return binary_list
+<<<<<<< HEAD
+=======
+
+queryy ="transition studies and skin friction measurements on an insulated"
+bm= BooleanModel(0.5, "1")
+d = bm.search(queryy)
+[print(i) for i in d]
+>>>>>>> origin/main
