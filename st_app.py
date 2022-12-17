@@ -7,6 +7,7 @@ from pathlib import Path
 from matplotlib import docstring, pyplot as  plt
 import numpy as np
 from virs import VectorialModel
+from boolean import BooleanModel
 from eval import evaluate
 
 
@@ -78,12 +79,13 @@ with col2:
     MODEL = model
     if not MODEL:
         st.error("Please select one model.")
-    if MODEL == "Vectorial":
-        if dataset != "-":
-            irsystem = VectorialModel(ALPHA, dic[dataset])
-            M_INC = irsystem
-    elif MODEL == "Boolean":
-        st.button("kk")
+    if dataset != "-":
+        if MODEL == "Vectorial":
+                irsystem = VectorialModel(ALPHA, dic[dataset])
+                M_INC = irsystem
+        elif MODEL == "Boolean":
+                irsystem = BooleanModel(ALPHA, dic[dataset])
+                M_INC = irsystem
     else: print("NO model")
 
 
@@ -127,10 +129,15 @@ if MODEL == "Vectorial":
     ALPHA = alpha
 
 elif model == "Boolean":
-    with coll1:
-        query = st.text_input("Enter a query", placeholder="Write your query here")
-        st.session_state.query = query
+    query = st.text_input("Enter a query", placeholder="Write your query here")
+    QUERY = query
+    if M_INC != None:
+        result = M_INC.search(query, ALPHA)
+        st.write(f"Found {len(result)} results")
+        for r in result:
+            show_result(r)
 
+else: print("No model selected")
 
 
 def make_visual_evaluation():

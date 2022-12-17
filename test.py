@@ -1,18 +1,19 @@
 
 def make_visual_evaluation(query):
 
-    rcuery = ""
+    rquery = ""
     if "&" in query or "|" in query or "~" in query:
-            rcuery = query
+        rquery = query
     else:
         splited = query.split()
         for w in range(len(splited)):
             if w == len(splited) - 1:
-                rcuery = rcuery + splited[w]
+                rquery = rquery + splited[w]
                 break
-            rcuery = rcuery + splited[w] + " " + "&" + " "
-    print(rcuery)
+            rquery = rquery + splited[w] + " " + "&" + " "
+    print(rquery)
 
 
-q = "Hola  & adios sennor feo"
+[print(q) for q in [1,2,3,2]]
+q = "Hola adios sennor feo"
 make_visual_evaluation(q)
