@@ -1,11 +1,9 @@
-#from document import corpus, document, query
-from itertools import count
+
 from virs import *
 from typing import Dict, Tuple
 import re
 from pathlib import Path
 from utils import read_json
-from statistics import mean
 
 def evaluate(corpus, model):
     """Evaluate a model given a corpus
