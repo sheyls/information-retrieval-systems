@@ -1,25 +1,14 @@
 import numpy as np
 from numpy.lib.function_base import average
-from nltk.stem.snowball import EnglishStemmer
 from irs import InformationRetrievalSystem
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.feature_extraction.text import TfidfTransformer
 import utils
 from nltk.tokenize import word_tokenize
-from nltk.stem import PorterStemmer,WordNetLemmatizer
+from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
-
-import pandas as pd
-
 from fbquery import is_binaryoperator
 from fbquery import convert
-from fbquery import is_Rparanthesis
-from fbquery import is_Lparanthesis
-
 from collections import defaultdict
-
 import time
-
 from edit_distance import minEditDistance
 
 class BooleanModel(InformationRetrievalSystem):

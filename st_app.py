@@ -1,11 +1,8 @@
 from statistics import mean
-from urllib.error import URLError
 import streamlit as st
 import pandas as pd
 import os
 from pathlib import Path
-from matplotlib import docstring, pyplot as  plt
-import numpy as np
 from virs import VectorialModel
 from boolean import BooleanModel
 from eval import evaluate

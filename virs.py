@@ -1,13 +1,10 @@
 from collections import Counter
-import math
-from unittest import result
 from nltk.tokenize import word_tokenize
 import numpy as np
 from numpy.lib.function_base import average
 from scipy.sparse import lil_matrix, csr_matrix
 from irs import InformationRetrievalSystem
 import utils
-import matplotlib.pyplot as plot
 
 class VectorialModel(InformationRetrievalSystem):
     def __init__(self, alpha, dataset):
