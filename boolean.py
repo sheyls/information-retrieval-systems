@@ -22,7 +22,7 @@ class BooleanModel(InformationRetrievalSystem):
         for doc in self.dataset.values():
             self.data[int(doc['id'])] = {
                 'id' : doc['id'],
-                'title' : word_tokenize(str(self.preprocess(doc['title']))) if 'title' in doc.keys() else [],
+                'title' : str(self.preprocess(doc['title'])) if 'title' in doc.keys() else "",
 
                 'text' : str(self.preprocess(doc['abstract'])) if 'abstract' in doc.keys() else ""
                 #word_tokenize(str(self.preprocess(doc['abstract']))) if 'abstract' in doc.keys() else []
