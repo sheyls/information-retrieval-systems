@@ -152,7 +152,7 @@ class BooleanModel(InformationRetrievalSystem):
         total_time = end_time - start_time
         print("Searching Time: ", ("{0:.14f}".format(total_time)))
         result = self.__print_search(docs, 500)
-        return docs
+        return result
 
 
     
@@ -342,7 +342,7 @@ class BooleanModel(InformationRetrievalSystem):
                         binary_list[i] = True
             return binary_list
 
-queryy ="what problems of heat conduction in composite slabs have been solved so far ."
+"""queryy ="Experimental and investigation"
 bm= BooleanModel(0.5, "1")
 d = bm.search(queryy)
-[print(i) for i in d]
+[print(i) for i in d]"""

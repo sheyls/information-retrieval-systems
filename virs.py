@@ -1,6 +1,7 @@
 from collections import Counter
 from nltk.tokenize import word_tokenize
 import numpy as np
+import math
 from numpy.lib.function_base import average
 from scipy.sparse import lil_matrix, csr_matrix
 from irs import InformationRetrievalSystem
@@ -27,9 +28,6 @@ class VectorialModel(InformationRetrievalSystem):
         self.N = len(self.data)
         self.__df()
         self.__tf_idf()
-
-        for query in self.queries.values():
-            self.search(query['text'], query_id = query['id'])
     
     
     def __doc_freq(self, word):
