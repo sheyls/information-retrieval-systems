@@ -45,7 +45,7 @@ def show_result(result: dict):
     with st.expander(f"{expander_header}"):
         if result["title"] != '' :
             t = result["title"]
-            st.caption(f"**{t.upper()}:** {a}")
+            st.caption(f"**{t.upper()}:**")
     
         st.markdown(result["abstract"].capitalize())
 
