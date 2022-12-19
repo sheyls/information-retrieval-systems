@@ -149,13 +149,7 @@ class BooleanModel(InformationRetrievalSystem):
         return docs
 
 
-    def __print_search(self, out, preview):
-        resul = []
-        for doc in out:
-            resul.append(self.dataset[str(doc[0])])
-
-            print(f"{doc[0]} - { self.dataset[str(doc[0])]['title'] if self.dataset[str(doc[0])]['title'] != '' else 'Not Title'}\nText: {self.dataset[str(doc[0])]['abstract'][:preview]}")
-        return resul
+    
     
     def query(self, query, alpha=0.5):
         """Evaluates the query
@@ -241,9 +235,14 @@ class BooleanModel(InformationRetrievalSystem):
         return docs
     
     def __print_search(self, out, preview):
+        result=[]
+
         for doc_id in out:
+            result.append(self.dataset[str(doc_id)])
             print(f"{doc_id} - { self.dataset[str(doc_id)]['title'] if self.dataset[str(doc_id)]['title'] != '' else 'Not Title'}\nText: {self.dataset[str(doc_id)]['abstract'][:preview]}")
             print()
+
+        return result
     
     def solve(self, left_word, right_word, b):
         """
