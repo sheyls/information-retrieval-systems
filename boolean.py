@@ -17,7 +17,8 @@ class BooleanModel(InformationRetrievalSystem):
         
         self.dataset, self.querys, self.rel = utils.read_json(dataset)
         self.data = {}
-        self.relevant_docs = int(average([len(queries.values()) for queries in self.rel.values()]))
+
+        # self.relevant_docs = int(average([len(queries.values()) for queries in self.rel.values()]))
 
         for doc in self.dataset.values():
             self.data[int(doc['id'])] = {
@@ -28,8 +29,7 @@ class BooleanModel(InformationRetrievalSystem):
                 #word_tokenize(str(self.preprocess(doc['abstract']))) if 'abstract' in doc.keys() else []
             }
         
-        #Stopwords
-        self.stopword = set(stopwords.words("english"))
+        
         
         #Stemming
         self.reverse_stem = defaultdict(list)
@@ -39,7 +39,7 @@ class BooleanModel(InformationRetrievalSystem):
         self.dictionary = set()
 
         # Documents is a dictionary from key:documents to value:document_name
-        self.doc = dict()
+        #self.doc = dict()
 
         # A posting list is a list of document identifiers (or document IDs) containing the term.
         self.postings = defaultdict(list)
@@ -61,20 +61,26 @@ class BooleanModel(InformationRetrievalSystem):
         for item in self.data.values():
             text= item['text']
             tittle= item ['title']
-            # Removes all the punctutation marks/special characters from the text
-            text= utils.remove_punctuation(text)
-            tittle= utils.remove_punctuation(tittle)
+            
             # Tokenize text into words
             words = word_tokenize(text) + word_tokenize (tittle)
             # Remove stopwords
+            
             # convert remaining words to lowercase
-            words = [word.lower() for word in words if word not in self.stopword]
+            #words = [word.lower() for word in words if word not in self.stopword]
+            
             #Stemming
-            for word in words:
+            """ for word in words:
                 self.reverse_stem[self.ps.stem(word)].append(word)
             for key in self.reverse_stem.keys():
                 self.reverse_stem[key] = self.unique(self.reverse_stem[key])
-            words = [self.ps.stem(word) for word in words]
+            words = [self.ps.stem(word) for word in words] """
+
+            for word in words:
+                self.reverse_stem[word].append(word)
+            for key in self.reverse_stem.keys():
+                self.reverse_stem[key] = self.unique(self.reverse_stem[key])
+            #words = [self.ps.stem(word) for word in words]
 
             terms = self.unique(words)
 
@@ -82,7 +88,7 @@ class BooleanModel(InformationRetrievalSystem):
             for term in terms:
                 self.postings[term].append(i)
             # Make a list of indexed documents
-            self.doc[i] = item['title']
+            #self.doc[i] = item['title']
             i=i+1
 
         # Making inverted index out of final posting list.
@@ -119,8 +125,8 @@ class BooleanModel(InformationRetrievalSystem):
         
         query =self.preprocess_bquery(query)
 
+        # Transforming queries with no specified boolean operator to 'boolean queries'
         rquery = ""
-
         splited = query.split()
         for w in range(len(splited)):
             if w == len(splited) - 1:
@@ -160,8 +166,8 @@ class BooleanModel(InformationRetrievalSystem):
         # query: list of query tokens in postfix form
         for i in range(len(query)):
             token= query[i]
-            print(token)
             searched_token = token
+
             # Token is an operator,
             # Pop two elements from stack and apply it.
             if is_binaryoperator(token):
@@ -190,15 +196,8 @@ class BooleanModel(InformationRetrievalSystem):
                     except: 
                         raise ValueError("Query is not correctly formed!")
 
-                # Lowercasing and stemming query term
-                #token = self.preprocess(token)
-                #token = self.ps.stem(token.lower())
-
-                """ if token[0] == "~":
-                    token = token[1:]"""
-                    
                 # Edit distance
-                threshold =2
+                threshold = 0
                 keys = []
                 if token[0] == "~":
                     token = token[1:]
@@ -216,6 +215,8 @@ class BooleanModel(InformationRetrievalSystem):
                     distance= minEditDistance(key,token,len(key),len(token))
                     if distance <= threshold:
                         count=count+1
+                        # keys.append(key) Si elimino el for de abajo descomentar esto
+                        #
                         for term in self.reverse_stem[key]:
                             if(threshold >= minEditDistance(term,token,len(term),len(token))):
                                 keys.append(term)
@@ -305,6 +306,7 @@ class BooleanModel(InformationRetrievalSystem):
         else:
             # Word is not present in the corpus
             if token[0]=="~":
+                
                 print(token[1:] ," is not found in the corpus!" )
             else:
                 print(token," is not found in the corpus!")
