@@ -60,10 +60,12 @@ class BooleanModel(InformationRetrievalSystem):
 
         for item in self.data.values():
             text= item['text']
+            tittle= item ['title']
             # Removes all the punctutation marks/special characters from the text
             text= utils.remove_punctuation(text)
+            tittle= utils.remove_punctuation(tittle)
             # Tokenize text into words
-            words = word_tokenize(text)
+            words = word_tokenize(text) + word_tokenize (tittle)
             # Remove stopwords
             # convert remaining words to lowercase
             words = [word.lower() for word in words if word not in self.stopword]
@@ -201,8 +203,6 @@ class BooleanModel(InformationRetrievalSystem):
                 """ if token[0] == "~":
                     token = token[1:]"""
                     
-                #token= self.lm.lemmatize(token.lower()) 
-                
                 # Edit distance
                 threshold =2
                 keys = []
