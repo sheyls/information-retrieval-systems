@@ -240,10 +240,6 @@ class BooleanModel(InformationRetrievalSystem):
         
         return docs
     
-    def __print_search(self, out, preview):
-        for doc_id in out:
-            print(f"{doc_id} - { self.dataset[str(doc_id)]['title'] if self.dataset[str(doc_id)]['title'] != '' else 'Not Title'}\nText: {self.dataset[str(doc_id)]['abstract'][:preview]}")
-            print()
     
     def solve(self, left_word, right_word, b):
         """
@@ -341,7 +337,7 @@ class BooleanModel(InformationRetrievalSystem):
                         binary_list[i] = True
             return binary_list
 
-queryy ="what problems of heat conduction in composite slabs have been solved so far ."
+"""queryy ="what problems of heat conduction in composite slabs have been solved so far ."
 bm= BooleanModel(0.5, "1")
 d = bm.search(queryy)
-[print(i) for i in d]
+[print(i) for i in d]"""

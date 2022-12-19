@@ -17,10 +17,10 @@ RETRO = False
 MODEL = None
 M_INC = None
 
+print(MODEL)
 def reset_search():
     st.session_state.results = []
     
-
 
 def reset():
     DOCS = None
@@ -125,11 +125,11 @@ if MODEL == "Vectorial":
         )
     ALPHA = alpha
 
-elif model == "Boolean":
+elif MODEL == "Boolean":
     query = st.text_input("Enter a query", placeholder="Write your query here")
     QUERY = query
-    if M_INC != None:
-        result = M_INC.search(query, ALPHA)
+    if QUERY != "":
+        result = M_INC.search(query)
         st.write(f"Found {len(result)} results")
         for r in result:
             show_result(r)
@@ -149,3 +149,5 @@ def make_visual_evaluation():
 
 if st.button("Show evaluation measures statistics"):
     make_visual_evaluation()
+
+print(MODEL)

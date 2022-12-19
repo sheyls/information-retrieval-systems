@@ -1,6 +1,7 @@
 from collections import Counter
 from nltk.tokenize import word_tokenize
 import numpy as np
+import math
 from numpy.lib.function_base import average
 from scipy.sparse import lil_matrix, csr_matrix
 from irs import InformationRetrievalSystem
