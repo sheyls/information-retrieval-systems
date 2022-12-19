@@ -13,7 +13,7 @@ class VectorialModel(InformationRetrievalSystem):
         self.alpha = alpha  
         self.searched = {}
         
-        self.dataset, self.queries, self.rel = utils.read_json(dataset)
+        self.dataset, self.queries, self.rel = utils.read_json(dataset) 
 
         self.data = {}
         self.relevant_docs = int(average([len(queries.values()) for queries in self.rel.values()]))
