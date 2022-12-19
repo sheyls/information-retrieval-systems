@@ -6,7 +6,7 @@ from nltk.tokenize import word_tokenize
 from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
 from fbquery import is_binaryoperator
-from fbquery import convert
+from fbquery import convert, preprocess_bquery
 from collections import defaultdict
 import time
 from edit_distance import minEditDistance
@@ -51,11 +51,10 @@ class BooleanModel(InformationRetrievalSystem):
     def corpus_preprocess(self):
         start_time = time.time()
         """Preprocess the corpus"""
-
         """ Iterate through the list of documents in the folder to find
-        all the unique words present after deleting numbers and
-        special characters. Ignore the stopwords while finding the
-        unique words. """
+        all the unique words present after deleting numbers,
+        special characters and stop words."""
+        
         i=1
 
         for item in self.data.values():
@@ -104,17 +103,7 @@ class BooleanModel(InformationRetrievalSystem):
         We then typecast a set to a list to return a list of unique words """ 
         return list(set(words))
     
-    def preprocess_bquery(self, data):
-        data = utils.convert_lower_case(data)
-        data = utils.remove_punctuation_bquery(data) #remove comma seperately
-        data = utils.remove_apostrophe(data)
-        data = utils.remove_stop_words_bquery(data)
-        data = utils.stemming(data)
-        data = utils.stemming(data) #needed again as we need to stem the words
-        data = utils.remove_punctuation_bquery(data) #needed again as num2word is giving few hypens and commas fourty-one
-        data = utils.remove_stop_words_bquery(data) #needed again as num2word is giving stop words 101 - one hundred and one
-        return data
-
+    
 
     def search(self, query):
         start_time = time.time()
@@ -122,41 +111,26 @@ class BooleanModel(InformationRetrievalSystem):
         :query: valid boolean expression to search for
         :returns: list of matching document names
         """
-        
-        query =self.preprocess_bquery(query)
-
-        # Transforming queries with no specified boolean operator to 'boolean queries'
-        rquery = ""
-        splited = query.split()
-        for w in range(len(splited)):
-            if w == len(splited) - 1:
-                rquery = rquery + splited[w]
-                break
-
-            if(splited[w+1] in "&|~" or splited[w] in "&|~"):
-                rquery = rquery + splited[w] + " "
-            else:
-                rquery = rquery + splited[w] + " " + "&" + " "
-
-
+        #--------------------------Preprocessing boolean query ---------------------------------#
+        query = preprocess_bquery(query)
         # Tokenize query
-        q = word_tokenize(rquery)
-        
+        q = word_tokenize(query)
         # Convert infix query to postfix query
-        q = convert(q)
         
+        q = convert(q)
+        # --------------------------------------------------------------------------------------#
+
         # Evaluate query against already processed documents
         docs = self.query(q)
         
         end_time = time.time()
         total_time = end_time - start_time
         print("Searching Time: ", ("{0:.14f}".format(total_time)))
+
         result = self.__print_search(docs, 500)
         return result
 
 
-    
-    
     def query(self, query, alpha=0.5):
         """Evaluates the query
         returns names of matching document 
@@ -341,8 +315,3 @@ class BooleanModel(InformationRetrievalSystem):
                     else:
                         binary_list[i] = True
             return binary_list
-
-"""queryy ="Experimental and investigation"
-bm= BooleanModel(0.5, "1")
-d = bm.search(queryy)
-[print(i) for i in d]"""
