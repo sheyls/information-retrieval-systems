@@ -146,16 +146,10 @@ class BooleanModel(InformationRetrievalSystem):
         total_time = end_time - start_time
         print("Searching Time: ", ("{0:.14f}".format(total_time)))
         result = self.__print_search(docs, 500)
-        return docs
+        return result
 
 
-    def __print_search(self, out, preview):
-        resul = []
-        for doc in out:
-            resul.append(self.dataset[str(doc[0])])
-
-            print(f"{doc[0]} - { self.dataset[str(doc[0])]['title'] if self.dataset[str(doc[0])]['title'] != '' else 'Not Title'}\nText: {self.dataset[str(doc[0])]['abstract'][:preview]}")
-        return resul
+    
     
     def query(self, query, alpha=0.5):
         """Evaluates the query
@@ -240,6 +234,15 @@ class BooleanModel(InformationRetrievalSystem):
         
         return docs
     
+    def __print_search(self, out, preview):
+        result=[]
+
+        for doc_id in out:
+            result.append(self.dataset[str(doc_id)])
+            print(f"{doc_id} - { self.dataset[str(doc_id)]['title'] if self.dataset[str(doc_id)]['title'] != '' else 'Not Title'}\nText: {self.dataset[str(doc_id)]['abstract'][:preview]}")
+            print()
+
+        return result
     
     def solve(self, left_word, right_word, b):
         """
@@ -337,7 +340,7 @@ class BooleanModel(InformationRetrievalSystem):
                         binary_list[i] = True
             return binary_list
 
-"""queryy ="what problems of heat conduction in composite slabs have been solved so far ."
+"""queryy ="Experimental and investigation"
 bm= BooleanModel(0.5, "1")
 d = bm.search(queryy)
 [print(i) for i in d]"""

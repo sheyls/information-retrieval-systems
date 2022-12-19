@@ -28,9 +28,6 @@ class VectorialModel(InformationRetrievalSystem):
         self.N = len(self.data)
         self.__df()
         self.__tf_idf()
-
-        for query in self.queries.values():
-            self.search(query['text'], query_id = query['id'])
     
     
     def __doc_freq(self, word):
