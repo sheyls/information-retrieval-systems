@@ -1,5 +1,5 @@
-# information-retrieval-systems
-## Pre-entrega SRI
+# information-retrieval-system
+#
 
 
 # Integrantes:
@@ -8,4 +8,6 @@ Elena Rodríguez Horta C312
 Sheyla Leyva Sánchez C312
 
 
-Para ejecutar el sistema de recuperación de información sobre los datasets, se debe ejecutar el script `main.py` y seguir las instrucciones en consola.
+#### Para ejecutar el proyecto:
+1- Moverse hasta la carpeta del proyecto (`cd` ...)
+2- Ejecutar `streamlit run st_app.py`

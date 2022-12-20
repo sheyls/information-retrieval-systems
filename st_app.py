@@ -21,7 +21,6 @@ state_vars = [
     "retro",
     "vinstance",
     "binstance",
-    "eval"
 ]
 for var in state_vars:
     if var not in st.session_state:
