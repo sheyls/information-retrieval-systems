@@ -38,9 +38,16 @@ def evaluate(corpus, model):
         r = model.search(query["text"])
        #cantidad de doc recuperado
         total_rel_doc, total_irrel_doc = get_total_relevant_documents(query,query_doc_relevance, total_docs)
-        top = min(20,len(r))  #cantidad de doc recuperados
+        top = min(20,len(r))
+        try:
+            precision = rr/top
+        except:
+            precision = 0
         rr, ir = get_relevant_docs_count(r,query,query_doc_relevance,top) #number of relevant documents retrieved, number of relevant documents retrieved.
-        precision = rr/top
+        try:
+            recall = rr/top
+        except:
+            recall = 0
         print(rr)
         print(ir)
         precision_list.append(precision)
@@ -67,7 +74,10 @@ def calculate_measure_f(beta : float, precision : float, recall : float) -> floa
     Returns:
         float: _description_
     """
-    return (1 + beta**2)/((1/precision)+(beta**2/recall)) if recall > 0 else 0
+    if recall > 0 and precision > 0:
+        return (1 + beta**2)/(1/precision)+(beta**2/recall)
+    else:
+        return 0
 
 def get_total_relevant_documents(query, query_doc_relevance, total_docs_count : int ) -> int:
     """Return the number of relevant documents and the number of irrelevant documents

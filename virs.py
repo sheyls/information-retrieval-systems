@@ -8,12 +8,12 @@ from irs import InformationRetrievalSystem
 import utils
 
 class VectorialModel(InformationRetrievalSystem):
-    def __init__(self, alpha, dataset):
+    def __init__(self, alpha, docs, queries, rel):
 
         self.alpha = alpha  
         self.searched = {}
         
-        self.dataset, self.queries, self.rel = utils.read_json(dataset) 
+        self.dataset, self.queries, self.rel = docs, queries, rel 
 
         self.data = {}
         self.relevant_docs = int(average([len(queries.values()) for queries in self.rel.values()]))

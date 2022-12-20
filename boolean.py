@@ -12,10 +12,10 @@ import time
 from edit_distance import minEditDistance
 
 class BooleanModel(InformationRetrievalSystem):
-    def __init__(self,alpha, dataset) -> None:
+    def __init__(self, docs, queries, rel) -> None:
         super().__init__()
         
-        self.dataset, self.querys, self.rel = utils.read_json(dataset)
+        self.dataset, self.querys, self.rel = docs, queries, rel
         self.data = {}
         self.relevant_docs = int(average([len(queries.values()) for queries in self.rel.values()]))
 
@@ -238,6 +238,8 @@ class BooleanModel(InformationRetrievalSystem):
         result=[]
 
         for doc_id in out:
+            print(doc_id)
+            print(self.dataset[str(doc_id)])
             result.append(self.dataset[str(doc_id)])
             print(f"{doc_id} - { self.dataset[str(doc_id)]['title'] if self.dataset[str(doc_id)]['title'] != '' else 'Not Title'}\nText: {self.dataset[str(doc_id)]['abstract'][:preview]}")
             print()
