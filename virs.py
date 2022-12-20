@@ -132,7 +132,6 @@ class VectorialModel(InformationRetrievalSystem):
         resul = []
         for doc in out:
             resul.append(self.dataset[str(doc[0])])
-            print(f"{doc[0]} - { self.dataset[str(doc[0])]['title'] if self.dataset[str(doc[0])]['title'] != '' else 'Not Title'}\nText: {self.dataset[str(doc[0])]['abstract'][:preview]}")
         return resul
             
     @staticmethod
@@ -152,9 +151,6 @@ class VectorialModel(InformationRetrievalSystem):
             return
         
         preprocessed_query = self.preprocess(query)
-            
-        if (not query_id):
-            print("\n---------- Ejecutando Búsqueda -----------\n")
         
         tokens = word_tokenize(str(preprocessed_query))
         d_cosines = []

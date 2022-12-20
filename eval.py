@@ -19,7 +19,6 @@ def evaluate(corpus, model):
     if corpus == "Cranfield":
         doc, queries, query_doc_relevance = utils.read_json("1")
         total_docs = len(doc)
-        print(len(doc))
 
     elif corpus == "Med":
         doc, queries, query_doc_relevance = utils.read_json("2")
@@ -42,8 +41,6 @@ def evaluate(corpus, model):
             recall = rr/top
         except:
             recall = 0
-        print(rr)
-        print(ir)
         precision_list.append(precision)
         try:
             recall = rr/total_rel_doc
@@ -54,9 +51,6 @@ def evaluate(corpus, model):
         f1_list.append(f1)
         fallout = ir/total_irrel_doc
         fallout_list.append(fallout)
-    [print(i) for i in precision_list]
-    print("recobrado")
-    [print(i) for i in recall_list]
     return precision_list, recall_list, f1_list, fallout_list
 
 def calculate_measure_f(beta : float, precision : float, recall : float) -> float:
@@ -72,17 +66,11 @@ def get_total_relevant_documents(name, query, query_doc_relevance, total_docs_co
     for item in query_doc_relevance.keys():
         if query["id"] == item:
             for doc_rel in query_doc_relevance[item]:
-                print(item)
-                print(doc_rel)
                 if(name == "Cranfield"):
                     if int(query_doc_relevance[item][doc_rel]["ground_truth"]) >= 2:
-                        print("INTO")
-                        print(int(query_doc_relevance[item][doc_rel]["ground_truth"]))
                         relevant+=1
                 if(name == "Med"):
                     if int(query_doc_relevance[item][doc_rel]["ground_truth"]) >= 1:
-                        print("INTO")
-                        print(int(query_doc_relevance[item][doc_rel]["ground_truth"]))
                         relevant+=1
     print(f"RELEVANT:{relevant}")
     irrelevant = total_docs_count - relevant
@@ -114,8 +102,3 @@ def get_relevant_docs_count(name, r , query, query_doc_relevance: Dict[Tuple[int
             ir+=1
     
     return rr, ir
-
-"""
-d, q, r = utils.read_json('2')
-v = VectorialModel(0.5, d, q, r )
-evaluate("Med", v)"""

@@ -159,7 +159,6 @@ def make_visual_evaluation():
     if(st.session_state.model == "Vectorial"):
         inc = st.session_state.vinstance
     elif(st.session_state.model == "Booleano"):
-        print("holaaa")   
         if inc != None:
             inc = st.session_state.binstance
         else:
@@ -180,5 +179,3 @@ def make_visual_evaluation():
 
 if st.button("Show evaluation measures statistics"):
     make_visual_evaluation()
-
-# what accurate or exact solutions of the laminar separation point for various incompressible
