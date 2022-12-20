@@ -319,18 +319,6 @@
     "id": "80",
     "text": "are methods of measuring aerodynamic derivatives available which could be adopted for use in short running time facilities ."
   },
-  "81": {
-    "id": "81",
-    "text": "what are wind-tunnel corrections for a two-dimensional aerofoil mounted off-centre in a tunnel ."
-  },
-  "82": {
-    "id": "82",
-    "text": "how do kuchemann's and multhopp's methods for calculating lift distributions on swept wings in subsonic flow compare with each other and with experiment ."
-  },
-  "83": {
-    "id": "83",
-    "text": "what is the present state of the theory of quasi-conical flows ."
-  },
   "84": {
     "id": "84",
     "text": "references on the methods available for accurately estimating aerodynamic heat transfer to conical bodies for both laminar and turbulent flow ."
@@ -647,18 +635,7 @@
     "id": "162",
     "text": "what accurate or exact solutions of the laminar separation point for various incompressible and compressible boundary layers with zero heat transfer are available ."
   },
-  "163": {
-    "id": "163",
-    "text": "can the hypersonic similarity results be applied to the technique of predicting surface pressures of an ogive forebody at angle of attack ."
-  },
-  "164": {
-    "id": "164",
-    "text": "what determines the onset of shock-induced boundary-layer separation ."
-  },
-  "165": {
-    "id": "165",
-    "text": "are the stable profiles of a compressible boundary layer induced by a moving wave known ."
-  },
+  
   "166": {
     "id": "166",
     "text": "are there experimental results on the stability of a compressible boundary layer induced by a moving wave ."

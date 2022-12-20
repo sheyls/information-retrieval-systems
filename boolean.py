@@ -240,6 +240,7 @@ class BooleanModel(InformationRetrievalSystem):
         for doc_id in out:
             print(doc_id)
             print(self.dataset[str(doc_id)])
+            print(f"ESTE ES EL ID: {str(doc_id)}")
             result.append(self.dataset[str(doc_id)])
             print(f"{doc_id} - { self.dataset[str(doc_id)]['title'] if self.dataset[str(doc_id)]['title'] != '' else 'Not Title'}\nText: {self.dataset[str(doc_id)]['abstract'][:preview]}")
             print()
@@ -341,8 +342,17 @@ class BooleanModel(InformationRetrievalSystem):
                     else:
                         binary_list[i] = True
             return binary_list
+"""
+queryy ="Experimental and investigation"
+doc, queries, query_doc_relevance = utils.read_json("1")
 
-"""queryy ="Experimental and investigation"
-bm= BooleanModel(0.5, "1")
-d = bm.search(queryy)
-[print(i) for i in d]"""
+model = BooleanModel(doc, queries, query_doc_relevance )
+count = 1
+for query in queries.values():
+        #exec
+        #model es instancia de vectorial
+        count +=1
+        r = model.search(query["text"])
+        print(count)
+        print(r)
+        """

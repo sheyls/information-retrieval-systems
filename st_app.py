@@ -45,7 +45,7 @@ def reset():
 
 def show_result(result: dict):
     doc_id = result["id"]
-    expander_header = f"{doc_id} -- ".format(doc_id)
+    expander_header = f"{doc_id} - ".format(doc_id)
     if result["title"] != '':
         expander_header += result["title"].capitalize()
         
@@ -153,25 +153,20 @@ elif st.session_state.model == "Boolean":
             show_result(r)
 
 
-
 def make_visual_evaluation():
 
-    if(st.session_state.eval != None):
-        print(st.session_state.val)
-    else:
-        if (st.session_state.model == "Vectorial"):
-            inc = st.session_state.vinstance
-        else:
-            inc = st.session_state.binstance
+        inc = st.session_state.vinstance
 
-            ps, rs, f1, fou = evaluate(st.session_state.dataset, inc)
-            p = mean(ps)
-            r = mean(rs)
-            f = mean(f1)
-            o = mean(fou)
-            data = pd.DataFrame([[p, "Presition"],[r, 'Recall'], [f, 'F1'], [o, 'Fallout']], columns=['Mean Value', 'Metrics'])
-            st.bar_chart(data, x="Metrics")
-            st.session_state.val = "simiherma"
+        ps, rs, f1, fou = evaluate(st.session_state.dataset, inc)
+        p = mean(ps)
+        r = mean(rs)
+        f = mean(f1)
+        o = mean(fou)
+        data = pd.DataFrame([[p, "Presition"],[r, 'Recall'], [f, 'F1'], [o, 'Fallout']], columns=['Mean Value', 'Metrics'])
+        st.line_chart(data, x="Metrics")
+        st.session_state.val = "simiherma"
 
 if st.button("Show evaluation measures statistics"):
     make_visual_evaluation()
+
+# what accurate or exact solutions of the laminar separation point for various incompressible
