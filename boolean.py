@@ -1,23 +1,21 @@
 import numpy as np
-from numpy.lib.function_base import average
 from irs import InformationRetrievalSystem
-import utils
 from nltk.tokenize import word_tokenize
 from nltk.stem import PorterStemmer
-from nltk.corpus import stopwords
 from fbquery import is_binaryoperator
-from fbquery import convert
+from fbquery import convert, preprocess_bquery
 from collections import defaultdict
 import time
 from edit_distance import minEditDistance
 
 class BooleanModel(InformationRetrievalSystem):
-    def __init__(self, docs, queries, rel) -> None:
+    def __init__(self,doc, queries, query_doc_relevance) -> None:
         super().__init__()
         
-        self.dataset, self.querys, self.rel = docs, queries, rel
+        self.dataset, self.querys, self.rel = doc, queries, query_doc_relevance
         self.data = {}
-        self.relevant_docs = int(average([len(queries.values()) for queries in self.rel.values()]))
+
+        # self.relevant_docs = int(average([len(queries.values()) for queries in self.rel.values()]))
 
         for doc in self.dataset.values():
             self.data[int(doc['id'])] = {
@@ -28,8 +26,7 @@ class BooleanModel(InformationRetrievalSystem):
                 #word_tokenize(str(self.preprocess(doc['abstract']))) if 'abstract' in doc.keys() else []
             }
         
-        #Stopwords
-        self.stopword = set(stopwords.words("english"))
+        
         
         #Stemming
         self.reverse_stem = defaultdict(list)
@@ -39,7 +36,7 @@ class BooleanModel(InformationRetrievalSystem):
         self.dictionary = set()
 
         # Documents is a dictionary from key:documents to value:document_name
-        self.doc = dict()
+        #self.doc = dict()
 
         # A posting list is a list of document identifiers (or document IDs) containing the term.
         self.postings = defaultdict(list)
@@ -51,30 +48,35 @@ class BooleanModel(InformationRetrievalSystem):
     def corpus_preprocess(self):
         start_time = time.time()
         """Preprocess the corpus"""
-
         """ Iterate through the list of documents in the folder to find
-        all the unique words present after deleting numbers and
-        special characters. Ignore the stopwords while finding the
-        unique words. """
+        all the unique words present after deleting numbers,
+        special characters and stop words."""
+        
         i=1
 
         for item in self.data.values():
             text= item['text']
             tittle= item ['title']
-            # Removes all the punctutation marks/special characters from the text
-            text= utils.remove_punctuation(text)
-            tittle= utils.remove_punctuation(tittle)
+            
             # Tokenize text into words
             words = word_tokenize(text) + word_tokenize (tittle)
             # Remove stopwords
+            
             # convert remaining words to lowercase
-            words = [word.lower() for word in words if word not in self.stopword]
+            #words = [word.lower() for word in words if word not in self.stopword]
+            
             #Stemming
-            for word in words:
+            """ for word in words:
                 self.reverse_stem[self.ps.stem(word)].append(word)
             for key in self.reverse_stem.keys():
                 self.reverse_stem[key] = self.unique(self.reverse_stem[key])
-            words = [self.ps.stem(word) for word in words]
+            words = [self.ps.stem(word) for word in words] """
+
+            for word in words:
+                self.reverse_stem[word].append(word)
+            for key in self.reverse_stem.keys():
+                self.reverse_stem[key] = self.unique(self.reverse_stem[key])
+            #words = [self.ps.stem(word) for word in words]
 
             terms = self.unique(words)
 
@@ -82,7 +84,7 @@ class BooleanModel(InformationRetrievalSystem):
             for term in terms:
                 self.postings[term].append(i)
             # Make a list of indexed documents
-            self.doc[i] = item['title']
+            #self.doc[i] = item['title']
             i=i+1
 
         # Making inverted index out of final posting list.
@@ -98,17 +100,7 @@ class BooleanModel(InformationRetrievalSystem):
         We then typecast a set to a list to return a list of unique words """ 
         return list(set(words))
     
-    def preprocess_bquery(self, data):
-        data = utils.convert_lower_case(data)
-        data = utils.remove_punctuation_bquery(data) #remove comma seperately
-        data = utils.remove_apostrophe(data)
-        data = utils.remove_stop_words_bquery(data)
-        data = utils.stemming(data)
-        data = utils.stemming(data) #needed again as we need to stem the words
-        data = utils.remove_punctuation_bquery(data) #needed again as num2word is giving few hypens and commas fourty-one
-        data = utils.remove_stop_words_bquery(data) #needed again as num2word is giving stop words 101 - one hundred and one
-        return data
-
+    
 
     def search(self, query):
         start_time = time.time()
@@ -116,41 +108,26 @@ class BooleanModel(InformationRetrievalSystem):
         :query: valid boolean expression to search for
         :returns: list of matching document names
         """
-        
-        query =self.preprocess_bquery(query)
-
-        rquery = ""
-
-        splited = query.split()
-        for w in range(len(splited)):
-            if w == len(splited) - 1:
-                rquery = rquery + splited[w]
-                break
-
-            if(splited[w+1] in "&|~" or splited[w] in "&|~"):
-                rquery = rquery + splited[w] + " "
-            else:
-                rquery = rquery + splited[w] + " " + "&" + " "
-
-
+        #--------------------------Preprocessing boolean query ---------------------------------#
+        query = preprocess_bquery(query)
         # Tokenize query
-        q = word_tokenize(rquery)
-        
+        q = word_tokenize(query)
         # Convert infix query to postfix query
-        q = convert(q)
         
+        q = convert(q)
+        # --------------------------------------------------------------------------------------#
+
         # Evaluate query against already processed documents
         docs = self.query(q)
         
         end_time = time.time()
         total_time = end_time - start_time
         print("Searching Time: ", ("{0:.14f}".format(total_time)))
+
         result = self.__print_search(docs, 500)
         return result
 
 
-    
-    
     def query(self, query, alpha=0.5):
         """Evaluates the query
         returns names of matching document 
@@ -160,8 +137,8 @@ class BooleanModel(InformationRetrievalSystem):
         # query: list of query tokens in postfix form
         for i in range(len(query)):
             token= query[i]
-            print(token)
             searched_token = token
+
             # Token is an operator,
             # Pop two elements from stack and apply it.
             if is_binaryoperator(token):
@@ -190,15 +167,8 @@ class BooleanModel(InformationRetrievalSystem):
                     except: 
                         raise ValueError("Query is not correctly formed!")
 
-                # Lowercasing and stemming query term
-                #token = self.preprocess(token)
-                #token = self.ps.stem(token.lower())
-
-                """ if token[0] == "~":
-                    token = token[1:]"""
-                    
                 # Edit distance
-                threshold =2
+                threshold = 0
                 keys = []
                 if token[0] == "~":
                     token = token[1:]
@@ -216,12 +186,14 @@ class BooleanModel(InformationRetrievalSystem):
                     distance= minEditDistance(key,token,len(key),len(token))
                     if distance <= threshold:
                         count=count+1
+                        # keys.append(key) Si elimino el for de abajo descomentar esto
+                        #
                         for term in self.reverse_stem[key]:
                             if(threshold >= minEditDistance(term,token,len(term),len(token))):
                                 keys.append(term)
                 if count == 0:            
-                    print( token," is not found in the corpus!" )
-                    return np.zeros(len(self.data), dtype=bool)
+                    print( searched_token," is not found in the corpus!" )
+                    return []
                 
                 word.append(self.bits(searched_token,token,keys))
         
@@ -308,6 +280,7 @@ class BooleanModel(InformationRetrievalSystem):
         else:
             # Word is not present in the corpus
             if token[0]=="~":
+                
                 print(token[1:] ," is not found in the corpus!" )
             else:
                 print(token," is not found in the corpus!")
@@ -342,17 +315,3 @@ class BooleanModel(InformationRetrievalSystem):
                     else:
                         binary_list[i] = True
             return binary_list
-"""
-queryy ="Experimental and investigation"
-doc, queries, query_doc_relevance = utils.read_json("1")
-
-model = BooleanModel(doc, queries, query_doc_relevance )
-count = 1
-for query in queries.values():
-        #exec
-        #model es instancia de vectorial
-        count +=1
-        r = model.search(query["text"])
-        print(count)
-        print(r)
-        """

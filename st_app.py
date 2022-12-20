@@ -56,7 +56,7 @@ def show_result(result: dict):
     
         st.markdown(result["abstract"].capitalize())
 
-st.title("Information Retrieval Multi-Models")
+st.title("Information Retrieval System")
 reset()
 
 dic = {"Cranfield": "1", "Med": "2"}
@@ -95,6 +95,7 @@ with col2:
             if st.session_state.vinstance == None:
                 irsystem = VectorialModel(st.session_state.alpha, st.session_state.docs, st.session_state.queries, st.session_state.rel)
                 st.session_state.vinstance = irsystem
+                
         elif model == "Boolean":
             if st.session_state.binstance == None:
                 irsystem = BooleanModel(st.session_state.docs, st.session_state.queries, st.session_state.rel)
@@ -155,16 +156,28 @@ elif st.session_state.model == "Boolean":
 
 def make_visual_evaluation():
 
+    inc = 3
+    if(st.session_state.model == "Vectorial"):
         inc = st.session_state.vinstance
+    elif(st.session_state.model == "Booleano"):
+        print("holaaa")   
+        if inc != None:
+            inc = st.session_state.binstance
+        else:
+            irsystem = BooleanModel(st.session_state.docs, st.session_state.queries, st.session_state.rel)
+            st.session_state.binstance = irsystem
+    else: 
+        inc = st.session_state.binstance
 
-        ps, rs, f1, fou = evaluate(st.session_state.dataset, inc)
-        p = mean(ps)
-        r = mean(rs)
-        f = mean(f1)
-        o = mean(fou)
-        data = pd.DataFrame([[p, "Presition"],[r, 'Recall'], [f, 'F1'], [o, 'Fallout']], columns=['Mean Value', 'Metrics'])
-        st.line_chart(data, x="Metrics")
-        st.session_state.val = "simiherma"
+
+    ps, rs, f1, fou = evaluate(st.session_state.dataset, inc)
+    p = mean(ps)
+    r = mean(rs)
+    f = mean(f1)
+    o = mean(fou)
+    data = pd.DataFrame([[p, "Presition"],[r, 'Recall'], [f, 'F1'], [o, 'Fallout']], columns=['Mean Value', 'Metrics'])
+    st.line_chart(data, x="Metrics")
+    st.session_state.val = "simiherma"
 
 if st.button("Show evaluation measures statistics"):
     make_visual_evaluation()
