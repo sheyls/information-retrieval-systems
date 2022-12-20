@@ -1,10 +1,7 @@
 import numpy as np
-from numpy.lib.function_base import average
 from irs import InformationRetrievalSystem
-import utils
 from nltk.tokenize import word_tokenize
 from nltk.stem import PorterStemmer
-from nltk.corpus import stopwords
 from fbquery import is_binaryoperator
 from fbquery import convert, preprocess_bquery
 from collections import defaultdict
@@ -12,10 +9,10 @@ import time
 from edit_distance import minEditDistance
 
 class BooleanModel(InformationRetrievalSystem):
-    def __init__(self,alpha, dataset) -> None:
+    def __init__(self,doc, queries, query_doc_relevance) -> None:
         super().__init__()
         
-        self.dataset, self.querys, self.rel = utils.read_json(dataset)
+        self.dataset, self.querys, self.rel = doc, queries, query_doc_relevance
         self.data = {}
 
         # self.relevant_docs = int(average([len(queries.values()) for queries in self.rel.values()]))
@@ -195,8 +192,8 @@ class BooleanModel(InformationRetrievalSystem):
                             if(threshold >= minEditDistance(term,token,len(term),len(token))):
                                 keys.append(term)
                 if count == 0:            
-                    print( token," is not found in the corpus!" )
-                    return np.zeros(len(self.data), dtype=bool)
+                    print( searched_token," is not found in the corpus!" )
+                    return []
                 
                 word.append(self.bits(searched_token,token,keys))
         
