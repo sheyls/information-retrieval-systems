@@ -91,7 +91,6 @@ class BooleanModel(InformationRetrievalSystem):
         self.dictionary = self.postings.keys()
         end_time = time.time()
         total_time = end_time - start_time
-        print("Preprocessing + Indexing Time: ", total_time)
         return start_time
 
     def unique(self, words):
@@ -211,8 +210,6 @@ class BooleanModel(InformationRetrievalSystem):
 
         for doc_id in out:
             result.append(self.dataset[str(doc_id)])
-            print(f"{doc_id} - { self.dataset[str(doc_id)]['title'] if self.dataset[str(doc_id)]['title'] != '' else 'Not Title'}\nText: {self.dataset[str(doc_id)]['abstract'][:preview]}")
-            print()
 
         return result
     
@@ -282,9 +279,7 @@ class BooleanModel(InformationRetrievalSystem):
             else:
                 print(token," is not found in the corpus!")
             
-            
-            if(len(other_words)):
-                print("Did you mean these ? : ")
+
             other_words = list((set(other_words) - set(self.dictionary)))
             #Printing all the words under the threshold value for mispelt tokens
             maxLength = 0

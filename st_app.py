@@ -5,40 +5,46 @@ import os
 from pathlib import Path
 from virs import VectorialModel
 from boolean import BooleanModel
+from utils import read_json
 from eval import evaluate
 
+state_vars = [
+    "docs",
+    "docs_proc",
+    "queries"
+    "rel"
+    "query",
+    "results",
+    "model",
+    "dataset",
+    "alpha",
+    "retro",
+    "vinstance",
+    "binstance",
+]
+for var in state_vars:
+    if var not in st.session_state:
+        st.session_state[var] = None
 
-DOCS = None
-RETRO = False
-QUERY = ""
-DATASET = None
-ALPHA = 0.5
-RETRO = False
-MODEL = None
-M_INC = None
 
-print(MODEL)
 def reset_search():
     st.session_state.results = []
-    
 
 def reset():
-    DOCS = None
-    QUERY = ""
-    DATASET = None
-    ALPHA = 0.5
-    RETRO = False
-    MODEL = None
-    M_INC = None
-    reset_search() 
+    st.session_state.docs = None
+    st.session_state.queries = None
+    st.session_state.rel = None
+    st.session_state.model = None
+    st.session_state.query = ""
+    st.session_state.dataset = None
+    st.session_state.alpha = 0.5
+    st.session_state.alpha = False
+    reset_search()
 
-
-def reset_search():
-    st.session_state.results = []
 
 def show_result(result: dict):
     doc_id = result["id"]
-    expander_header = f"{doc_id} -- ".format(doc_id)
+    expander_header = f"{doc_id} - ".format(doc_id)
     if result["title"] != '':
         expander_header += result["title"].capitalize()
         
@@ -49,7 +55,7 @@ def show_result(result: dict):
     
         st.markdown(result["abstract"].capitalize())
 
-st.title("Information Retrieval Multi-Models")
+st.title("Information Retrieval System")
 reset()
 
 dic = {"Cranfield": "1", "Med": "2"}
@@ -66,54 +72,67 @@ col1, col2 = st.columns([2, 2])
 
 with col1:
     dataset = st.selectbox("Select a database", datasets)
-    DATASET = dataset
+    if dataset != "-":
+        if st.session_state.docs is None or st.session_state.dataset != dataset:
+            reset()
+            docs, queries, rel = read_json(dic[dataset])
+
+            st.session_state.docs = docs
+            st.session_state.dataset = dataset
+            st.session_state.queries = queries
+            st.session_state.rel = rel
 
 
 with col2:
     model = st.selectbox(
         "Choose a retrieval model", ["-", "Vectorial", "Boolean"])
-    MODEL = model
-    if not MODEL:
+    st.session_state.model = model
+    if not model:
         st.error("Please select one model.")
     if dataset != "-":
-        if MODEL == "Vectorial":
-                irsystem = VectorialModel(ALPHA, dic[dataset])
-                M_INC = irsystem
-        elif MODEL == "Boolean":
-                irsystem = BooleanModel(ALPHA, dic[dataset])
-                M_INC = irsystem
-    else: print("NO model")
+        if model == "Vectorial":
+            if st.session_state.vinstance == None:
+                irsystem = VectorialModel(st.session_state.alpha, st.session_state.docs, st.session_state.queries, st.session_state.rel)
+                st.session_state.vinstance = irsystem
+                
+        elif model == "Boolean":
+            if st.session_state.binstance == None:
+                irsystem = BooleanModel(st.session_state.docs, st.session_state.queries, st.session_state.rel)
+                st.session_state.binstance = irsystem
 
 
 
 coll1, coll2 = st.columns([6, 2])
 
-if MODEL == "Vectorial":
+if st.session_state.model == "Vectorial":
     with coll2:
-        RETRO = st.checkbox("Rocchio retroalimentation")
-        print(RETRO)
+        retro = st.checkbox("Rocchio retroalimentation")
 
     with coll1:
         query = st.text_input("Enter a query", placeholder="Write your query here")
-        QUERY = query
-        if  M_INC != None:
-            if RETRO:
-                result = M_INC.search(query, ALPHA)
+        st.session_state.query = query
+        if  st.session_state.vinstance != None and query != "":
+            if retro:
+                result = st.session_state.vinstance.search(query, st.session_state.alpha)
                 st.write(f"Found {len(result)} results")
                 for r in result:
                     show_result(r)
                 relevant = st.text_input("Write the document's ID you found relevants")
-                M_INC.executeRocchio(QUERY, relevant, 1, 0.9, 0.5)
-                M_INC.search(QUERY, preview=250)
+
+                if relevant != "":
+                    st.write(f"Do you find these more relevant?")
+                    st.session_state.vinstance.executeRocchio(query, relevant, 1, 0.9, 0.5)
+                    resul = st.session_state.vinstance.search(query, preview=250)
+                    for r in result:
+                        show_result(r)
+
 
             else:
-                result = M_INC.search(query, ALPHA)
+                result = st.session_state.vinstance.search(query, st.session_state.alpha)
                 st.write(f"Found {len(result)} results")
                 for r in result:
                     show_result(r)
 
-        else:
-            print("No model instance")
              
     alpha = st.slider(
             "Smoothing constant",
@@ -122,31 +141,41 @@ if MODEL == "Vectorial":
             0.5,
             help="Smoothing constant",
         )
-    ALPHA = alpha
+    st.session_state.alpha = alpha
 
-elif MODEL == "Boolean":
+elif st.session_state.model == "Boolean":
     query = st.text_input("Enter a query", placeholder="Write your query here")
-    QUERY = query
-    if QUERY != "":
-        result = M_INC.search(query)
+    st.session_state.query = query
+    if query != "":
+        result = st.session_state.binstance.search(query)
         st.write(f"Found {len(result)} results")
         for r in result:
             show_result(r)
 
-else: print("No model selected")
-
 
 def make_visual_evaluation():
 
-    ps, rs, f1, fou = evaluate(DATASET, M_INC)
+    inc = 3
+    if(st.session_state.model == "Vectorial"):
+        inc = st.session_state.vinstance
+    elif(st.session_state.model == "Booleano"):
+        if inc != None:
+            inc = st.session_state.binstance
+        else:
+            irsystem = BooleanModel(st.session_state.docs, st.session_state.queries, st.session_state.rel)
+            st.session_state.binstance = irsystem
+    else: 
+        inc = st.session_state.binstance
+
+
+    ps, rs, f1, fou = evaluate(st.session_state.dataset, inc)
     p = mean(ps)
     r = mean(rs)
     f = mean(f1)
     o = mean(fou)
     data = pd.DataFrame([[p, "Presition"],[r, 'Recall'], [f, 'F1'], [o, 'Fallout']], columns=['Mean Value', 'Metrics'])
-    st.bar_chart(data, x="Metrics")
+    st.line_chart(data, x="Metrics")
+    st.session_state.val = "simiherma"
 
 if st.button("Show evaluation measures statistics"):
     make_visual_evaluation()
-
-print(MODEL)
