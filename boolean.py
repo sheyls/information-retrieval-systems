@@ -3,14 +3,17 @@ from irs import InformationRetrievalSystem
 from nltk.tokenize import word_tokenize
 from nltk.stem import PorterStemmer
 from fbquery import is_binaryoperator
-from fbquery import convert, preprocess_bquery
+from fbquery import convert, preprocess_bquery, expand_bquery
 from collections import defaultdict
 import time
 from edit_distance import minEditDistance
+from query_expansion import query_expansion_by_synonyms
 
 class BooleanModel(InformationRetrievalSystem):
-    def __init__(self,doc, queries, query_doc_relevance) -> None:
+    def __init__(self,doc, queries, query_doc_relevance, expand_query =True) -> None:
         super().__init__()
+
+        self.expand_query= expand_query
         
         self.dataset, self.querys, self.rel = doc, queries, query_doc_relevance
         self.data = {}
@@ -102,11 +105,18 @@ class BooleanModel(InformationRetrievalSystem):
     
 
     def search(self, query):
-        start_time = time.time()
         """Query the indexed documents using a boolean model
         :query: valid boolean expression to search for
         :returns: list of matching document names
         """
+
+        start_time = time.time()
+        
+        if(self.expand_query): 
+            expansion= query_expansion_by_synonyms(query)
+            query= expand_bquery(query, expansion)
+        
+        print(query)
         #--------------------------Preprocessing boolean query ---------------------------------#
         query = preprocess_bquery(query)
         # Tokenize query
@@ -148,6 +158,7 @@ class BooleanModel(InformationRetrievalSystem):
 
                 # Pop left operand
                 if len(word)==0:
+                    print(query)
                     raise ValueError("Query is not correctly formed!")
                 left_word = word.pop()
 
@@ -210,6 +221,8 @@ class BooleanModel(InformationRetrievalSystem):
 
         for doc_id in out:
             result.append(self.dataset[str(doc_id)])
+            print(f"{doc_id} - { self.dataset[str(doc_id)]['title'] if self.dataset[str(doc_id)]['title'] != '' else 'Not Title'}\nText: {self.dataset[str(doc_id)]['abstract'][:preview]}")
+            print()
 
         return result
     

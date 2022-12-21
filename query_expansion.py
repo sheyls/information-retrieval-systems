@@ -15,7 +15,7 @@ def query_expansion_by_synonyms(query):
         query in order to get more specific documents in the response
     """
 
-    english_stop = english_stopwords
+    english_stop = stopwords.words('english')
     all_stopwords = english_stop
     non_words = list(punctuation)
     
@@ -23,6 +23,8 @@ def query_expansion_by_synonyms(query):
     tokens = wordpunct_tokenize(query)
 
     tokens = [elem for elem in tokens if (elem not in all_stopwords and elem not in non_words)]
+    
+    #print(tokens)
 
     words=[]
     synonyms = []
@@ -35,7 +37,8 @@ def query_expansion_by_synonyms(query):
 
         for syn in wn.synsets(token):
             for lm in syn.lemmas():
-                synonyms.append(lm.name())
+                if lm.name() not in english_stop:
+                    synonyms.append(lm.name())
                 
 
         synonyms = (set(synonyms))
@@ -43,5 +46,6 @@ def query_expansion_by_synonyms(query):
         words.extend(list(synonyms)[:2])
         synonyms = []
     words = [word.replace('_', ' ') for word in words]
-    return words
+    #print (words)
+    return expansions
 

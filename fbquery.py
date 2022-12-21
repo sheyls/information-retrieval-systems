@@ -21,6 +21,15 @@ def is_binaryoperator(query_token):
         return True
     return False
 
+def is_any_punctuation(query_token):
+    symbols = "!\"#$%()*+./:;<=>?@[\]^_`{-}&|~\n"
+    for s in symbols:
+        if s == query_token:
+            return True
+    return False
+
+
+
 def convert(query_token):
     
     # Converts an infix query into postfix
@@ -116,5 +125,31 @@ def remove_stop_words_bquery(data):
                 first_word=False
             else:
                 new_text = new_text + " " + w
+        
     return new_text
+
+def expand_bquery(query, expand):
+    query = remove_stop_words_bquery(query)
+    words = word_tokenize(query)
+    for i in range(len(words)):
+        item= words[i]
+        if item in expand.keys():
+            if len(expand[item])>0 :
+                n_item= '(' + " "+  item
+                for syn in expand[item]:
+                    n_item= n_item + " " + '|' +  " " + syn
+                n_item= n_item + " " + ')'
+                words[i]= n_item
+
+        """ if  not is_binaryoperator(item) and not is_Rparanthesis(item) and not is_Lparanthesis(item) and not is_any_punctuation(item):
+            if len(expand[item])>0 :
+                n_item= '(' + " "+  item
+                for syn in expand[item]:
+                    n_item= n_item + " " + '|' +  " " + syn
+                n_item= n_item + " " + ')'
+                words[i]= n_item """
+    return " ".join(words)
+
+
+
     
